@@ -47,6 +47,9 @@ define ('PLUGIN_FORMCREATOR_GLPI_MAX_VERSION', '9.4');
 
 define('FORMCREATOR_ROOTDOC', $CFG_GLPI['root_doc'] . '/plugins/formcreator');
 
+// Plugin global configuration
+$_SESSION['plugin_formcreator'] = [];
+
 /**
  * Define the plugin's version and informations
  *
@@ -139,6 +142,12 @@ function plugin_init_formcreator() {
    $plugin = new Plugin();
    if ($plugin->isInstalled('formcreator') && $plugin->isActivated('formcreator')) {
       spl_autoload_register('plugin_formcreator_autoload');
+
+      /*
+       * Plugin configuration parameters -
+       * set the content of the global $_SESSION['plugin_formcreator'] variable according to the current session identifier
+       */
+      PluginFormcreatorEntityconfig::loadConfiguration();
 
       if (isset($_SESSION['glpiactiveentities_string'])) {
          // Redirect to helpdesk replacement

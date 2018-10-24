@@ -43,6 +43,7 @@ class PluginFormcreatorWizard {
    const MENU_FEEDS        = 4;
    const MENU_BOOKMARKS    = 5;
    const MENU_HELP         = 6;
+   const MENU_LINKS        = 7;
 
    public static function header($title) {
       global $CFG_GLPI, $HEADER_LOADED, $DB;
@@ -83,7 +84,9 @@ class PluginFormcreatorWizard {
       echo "<input type='checkbox' id='formcreator-toggle-nav-desktop'>";
       echo "<label for='formcreator-toggle-nav-desktop' class='formcreator-nav-button'></label>";
 
-      self::showTicketSummary();
+      if ($_SESSION['plugin_formcreator']['tickets_summary']) {
+         self::showTicketSummary();
+      }
 
       echo '<div id="header_top">';
       echo '<div id="c_logo"></div>';
@@ -165,6 +168,59 @@ class PluginFormcreatorWizard {
          }
       }
 
+      $link = new Link;
+      $ar_links = $link->find("name LIKE '". $_SESSION['plugin_formcreator']['external_links_prefix'] ."%'");
+      foreach ($ar_links as $id => $a_link) {
+         /*
+          * The link name is filtered and trimmed to remove the 'Helpdesk' string and extra whitespaces:
+          * Helpdesk 1 - the first link
+          * will display: the first link.
+          */
+         $label = PluginFormcreatorCommon::cleanPattern(
+            $_SESSION['plugin_formcreator']['external_links_prefix'], $a_link['name']);
+
+         /*
+          * If the link data field contains a line starting with Icon:, this line is used as a class icon
+          * for the link. As an example, this line:
+          * Icon: fa fa-dashboard
+          * will use the font awesome fa-dashboard icon for the current link.
+          * As default, the fa-globe icon is used.
+          */
+         preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_icon'] ."(.*)$/m", $a_link['data'], $found);
+         $icon = "fa fa-globe";
+         if ((count($found) > 0) and (count($found[0]) > 0)) {
+            $icon = PluginFormcreatorCommon::cleanPattern(
+               $_SESSION['plugin_formcreator']['external_links_icon'], $found[0][0]);
+         }
+
+         /*
+          * If the link data field contains a line starting with Title:, this line is used to find the title used
+          * for the link. As an example, this line:
+          * Title: this is my title
+          * will define a new title for the current link.
+          * As default, the link name is used.
+          */
+         preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_title'] ."(.*)$/m", $a_link['data'], $found);
+         $title = $a_link['name'];
+         if ((count($found) > 0) and (count($found[0]) > 0)) {
+            $title = PluginFormcreatorCommon::cleanPattern(
+               $_SESSION['plugin_formcreator']['external_links_title'], $found[0][0]);
+         }
+         /*
+          * If the external link uses a new window...
+          */
+         $target = "";
+         if ($a_link['open_window'] == "1") {
+            $target = 'target="_blank"';
+         }
+         echo '<li class="' . ($activeMenuItem == self::MENU_LINKS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
+         echo '<a href="' . $a_link['link'] . '" '. $target .'>';
+         echo '<span class="'. $icon .' fc_list_icon" title="' . $title . '"></span>';
+         echo '<span class="label">'. $label .'</span>';
+         echo '</a>';
+         echo '</li>';
+      }
+
       if (isset($CFG_GLPI["helpdesk_doc_url"]) && !empty($CFG_GLPI["helpdesk_doc_url"])) {
          echo '<li class="' . ($activeMenuItem == self::MENU_HELP ? 'plugin_formcreator_selectedMenuItem' : '') . 'plugin_formcreator_helpIcon">';
          echo '<a href="' . $CFG_GLPI["helpdesk_doc_url"] . '" target="_blank">';
@@ -200,11 +256,13 @@ class PluginFormcreatorWizard {
       // icons
       echo '</ul>';
       echo '<ul class="plugin_formcreator_userMenu_icons">';
-      // preferences
-      echo '<li id="plugin_formcreator_preferences_icon">';
-      echo '<a href="'.$CFG_GLPI["root_doc"].'/front/preference.php" class="fa fa-cog" title="'.
-            __s('My settings').'"><span id="preferences_icon" title="'.__s('My settings').'" alt="'.__s('My settings').'" class="button-icon"></span>';
-      echo '</a></li>';
+      if ($_SESSION['plugin_formcreator']['user_preferences']) {
+         // preferences
+         echo '<li id="plugin_formcreator_preferences_icon">';
+         echo '<a href="' . $CFG_GLPI["root_doc"] . '/front/preference.php" class="fa fa-cog" title="' .
+            __s('My settings') . '"><span id="preferences_icon" title="' . __s('My settings') . '" alt="' . __s('My settings') . '" class="button-icon"></span>';
+         echo '</a></li>';
+      }
       // Logout
       echo '<li id="plugin_formcreator_logoutIcon" ><a href="'.$CFG_GLPI["root_doc"].'/front/logout.php';      /// logout without noAuto login for extauth
       if (isset($_SESSION['glpiextauth']) && $_SESSION['glpiextauth']) {
@@ -217,23 +275,46 @@ class PluginFormcreatorWizard {
       echo '</ul>';
 
       // avatar
-      echo '<span id="plugin_formcreator_avatar">';
+      // Get formatted user name
       $user = new User;
       $user->getFromDB($_SESSION['glpiID']);
-      echo '<a href="'.$CFG_GLPI["root_doc"].'/front/preference.php"
-               title="'.formatUserName (0, $_SESSION["glpiname"],
-                                           $_SESSION["glpirealname"],
-                                           $_SESSION["glpifirstname"], 0, 20).'">
-            <img src="'.User::getThumbnailURLForPicture($user->fields['picture']).'"/>
-            </a>
-            </span>';
+      $dbu = new DbUtils();
+      $the_user_name = $dbu->formatUserName(0, $_SESSION["glpiname"],
+         $_SESSION["glpirealname"], $_SESSION["glpifirstname"], 0, 20);
+
+      if ($_SESSION['plugin_formcreator']['avatar']) {
+         // avatar
+         echo '<span id="plugin_formcreator_avatar">';
+         if ($_SESSION['plugin_formcreator']['user_preferences']) {
+            echo '<a href="' . $CFG_GLPI["root_doc"] . '/front/preference.php">';
+         }
+         echo '<img title="'. $the_user_name. '" src="' . User::getThumbnailURLForPicture($user->fields['picture']) . '"/>';
+         if ($_SESSION['plugin_formcreator']['user_preferences']) {
+            echo '</a>';
+         }
+         echo '</span>';
+      }
 
       // Profile and entity selection
-      echo '<ul class="plugin_formcreator_entityProfile">';
-      if (Session::getLoginUserID()) {
-         Html::showProfileSelecter($CFG_GLPI["root_doc"]."/front/helpdesk.public.php");
+      if ($_SESSION['plugin_formcreator']['profile_selector'] or $_SESSION['plugin_formcreator']['user_name']) {
+         echo '<ul class="plugin_formcreator_entityProfile">';
+         if ($_SESSION['plugin_formcreator']['user_name']) {
+            echo '<li>';
+            echo '<span class="plugin_formcreator_user_name">';
+            echo $the_user_name;
+            echo '</span>';
+            echo '</li>';
+         }
+
+         if ($_SESSION['plugin_formcreator']['profile_selector']) {
+            echo '<li>';
+            if (Session::getLoginUserID()) {
+               Html::showProfileSelecter($CFG_GLPI["root_doc"] . "/front/helpdesk.public.php");
+            }
+            echo '</li>';
+         }
+         echo "</ul>";
       }
-      echo "</ul>";
    }
 
    public static function showTicketSummary() {

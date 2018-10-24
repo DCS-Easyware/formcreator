@@ -42,6 +42,7 @@ if (!defined('GLPI_ROOT')) {
 class PluginFormcreatorEntityconfig extends CommonDBTM {
 
    const CONFIG_PARENT = -2;
+   const CONFIG_PARENT_STRING = '-/-';
    const CONFIG_SIMPLIFIED_SERVICE_CATALOG = 1;
    const CONFIG_EXTENDED_SERVICE_CATALOG = 2;
 
@@ -106,14 +107,131 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Helpdesk mode', 'formcreator')."</td>";
       echo "<td>";
-      Dropdown::showFromArray('replace_helpdesk', $elements, ['value' => $this->fields['replace_helpdesk']]);
-      if ($this->fields['replace_helpdesk'] == self::CONFIG_PARENT) {
-         $tid = self::getUsedConfig('replace_helpdesk', $ID);
-         echo '<div class="green">';
-         echo $elements[$tid];
-         echo '</div>';
+      $value = $this->fields["replace_helpdesk"];
+      $inheritedValue = self::getUsedConfig('replace_helpdesk', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showFromArray('replace_helpdesk', $elements, ['value' => $inheritedValue]);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showFromArray('replace_helpdesk', $elements, ['value' => $value]);
       }
       echo '</td></tr>';
+
+      // External links configuration
+      echo "<tr><th colspan='2'>" . __('External links configuration', 'formcreator') . "</th></tr>";
+      echo "<tr>";
+      echo "<td >" . __('Prefix for external links', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["external_links_prefix"];
+      $inheritedValue = self::getUsedConfig('external_links_prefix', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="external_links_prefix" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="external_links_prefix" value="' . $value . '" />';
+      }
+      echo "</td></tr>";
+      echo "<tr><td colspan='2'>";
+      echo "<em>" . __('All the Glpi external links which name starts with this prefix will be displayed in the helpdesk menu.', 'formcreator') . "</em>";
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Prefix for icon name', 'Icon:') . "</td>";
+      echo "<td>";
+      $value = $this->fields["external_links_icon"];
+      $inheritedValue = self::getUsedConfig('external_links_icon', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="external_links_icon" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="external_links_icon" value="' . $value . '" />';
+      }
+      echo "</td></tr>";
+      echo "<tr><td colspan='2'>";
+      echo "<em>" . __('A line of text in the link description that starts with this prefix is supposed to contain the name of the icon to be used in the menu.', 'formcreator') . "</em>";
+      echo "</td></tr>";
+      echo "<tr>";
+      echo "<td >" . __('Prefix for link title', 'Title:') . "</td>";
+      echo "<td>";
+      $value = $this->fields["external_links_title"];
+      $inheritedValue = self::getUsedConfig('external_links_title', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="external_links_title" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="external_links_title" value="' . $value . '" />';
+      }
+      echo "</td></tr>";
+      echo "<tr><td colspan='2'>";
+      echo "<em>" . __('A line of text in the link description that starts with this prefix is supposed to contain the title used when hovering the link in the menu.', 'formcreator') . "</em>";
+      echo "</td></tr>";
+
+      // Header bar configuration
+      echo "<tr><th colspan='2'>" . __('Header bar configuration', 'formcreator') . "</th></tr>";
+      echo "<tr>";
+      echo "<td >" . __('Display the tickets summary', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["tickets_summary"];
+      $inheritedValue = self::getUsedConfig('tickets_summary', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("tickets_summary", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("tickets_summary", $value);
+      }
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Allow to change user preferences', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["user_preferences"];
+      $inheritedValue = self::getUsedConfig('user_preferences', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("user_preferences", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("user_preferences", $value);
+      }
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Display user avatar', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["avatar"];
+      $inheritedValue = self::getUsedConfig('avatar', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("avatar", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("avatar", $value);
+      }
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Display user name', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["user_name"];
+      $inheritedValue = self::getUsedConfig('user_name', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("user_name", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("user_name", $value);
+      }
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Display profile selector', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["profile_selector"];
+      $inheritedValue = self::getUsedConfig('profile_selector', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("profile_selector", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("profile_selector", $value);
+      }
+      echo "</td></tr>";
 
       if ($canedit) {
          echo "<tr>";
@@ -134,19 +252,15 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
    /**
     * Retrieve data of current entity or parent entity
     *
-    * @since version 0.84 (before in entitydata.class)
-    *
     * @param $fieldref        string   name of the referent field to know if we look at parent entity
     * @param $entities_id
-    * @param $fieldval        string   name of the field that we want value (default '')
-    * @param $default_value   integer  value to return (default -2)
+    * @param $default_value   integer/string  value to return (default -2or -/-)
+    *
+    * @return string value
     **/
-   static function getUsedConfig($fieldref, $entities_id, $fieldval='', $default_value=-2) {
+   static function getUsedConfig($fieldref, $entities_id, $default_value = -2) {
 
-      // for calendar
-      if (empty($fieldval)) {
-         $fieldval = $fieldref;
-      }
+
 
       $entity = new Entity();
       $entityConfig = new self();
@@ -156,10 +270,11 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
          if ($entityConfig->getFromDB($entities_id)) {
             if (is_numeric($default_value)
                   && ($entityConfig->fields[$fieldref] != self::CONFIG_PARENT)) {
-                     return $entityConfig->fields[$fieldval];
+               return $entityConfig->fields[$fieldref];
             }
-            if (!is_numeric($default_value)) {
-               return $entityConfig->fields[$fieldval];
+            if (!is_numeric($default_value)
+                  && ($entityConfig->fields[$fieldref] != self::CONFIG_PARENT_STRING)) {
+               return $entityConfig->fields[$fieldref];
             }
 
          }
@@ -167,21 +282,39 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
 
       // Entity data not found or not defined : search in parent one
       if ($entities_id > 0) {
-
-         if ($entity->getFromDB($entities_id)) {
-            $ret = self::getUsedConfig($fieldref, $entity->fields['entities_id'], $fieldval,
-                  $default_value);
-            return $ret;
-
-         }
+         return self::getUsedConfig($fieldref, $entity->fields['entities_id'], $default_value);
       }
-      /*
-       switch ($fieldval) {
-       case "tickettype" :
-       // Default is Incident if not set
-       return Ticket::INCIDENT_TYPE;
-       }
-       */
+
       return $default_value;
+   }
+
+   /**
+    * Load the plugin configuration in a global variable $_SESSION['plugin_formcreator']
+    *
+    * @global array $_SESSION['plugin_formcreator']
+    */
+   static function loadConfiguration() {
+      // Protect if session is not opened
+      if (! isset($_SESSION['glpiactive_entity'])) {
+         return;
+      }
+
+      // Get global configuration parameters
+      $_SESSION['plugin_formcreator']['tickets_summary'] = self::getUsedConfig('tickets_summary',
+         $_SESSION['glpiactive_entity']);
+      $_SESSION['plugin_formcreator']['user_preferences'] = self::getUsedConfig('user_preferences',
+         $_SESSION['glpiactive_entity']);
+      $_SESSION['plugin_formcreator']['avatar'] = self::getUsedConfig('avatar',
+         $_SESSION['glpiactive_entity']);
+      $_SESSION['plugin_formcreator']['user_name'] = self::getUsedConfig('user_name',
+         $_SESSION['glpiactive_entity']);
+      $_SESSION['plugin_formcreator']['profile_selector'] = self::getUsedConfig('profile_selector',
+         $_SESSION['glpiactive_entity']);
+      $_SESSION['plugin_formcreator']['external_links_prefix'] = self::getUsedConfig('external_links_prefix',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
+      $_SESSION['plugin_formcreator']['external_links_icon'] = self::getUsedConfig('external_links_icon',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
+      $_SESSION['plugin_formcreator']['external_links_title'] = self::getUsedConfig('external_links_title',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
    }
 }

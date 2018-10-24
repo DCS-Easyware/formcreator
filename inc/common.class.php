@@ -133,4 +133,38 @@ class PluginFormcreatorCommon {
       }
       return (int) $line[$fieldName];
    }
+
+   /**
+    * Prepare keywords for a fulltext search in boolean mode
+    * takes into account strings in double quotes
+    *
+    * @param string $keywords
+    * @return string
+    */
+   public static function prepareBooleanKeywords($keywords) {
+      // @see https://stackoverflow.com/questions/2202435/php-explode-the-string-but-treat-words-in-quotes-as-a-single-word
+      preg_match_all('/"(?:\\\\.|[^\\\\"])*"|\S+/', $keywords, $matches);
+      $matches = $matches[0];
+      foreach ($matches as &$keyword) {
+         if (strpos($keyword, '"') === 0) {
+            // keyword does not begins with a double quote (assume it does not ends with this char)
+            $keyword .= '*';
+         }
+      }
+
+      return implode(' ', $matches);
+   }
+
+   /**
+    * Clean a pattern used in an external link:
+    * - removes $pattern from $subject
+    * - strips and returns the resulting string
+    *
+    * @param string $pattern
+    * @param string $subject
+    * @return string
+    */
+   public static function cleanPattern($pattern, $subject) {
+      return (trim(str_replace($pattern, '', $subject)));
+   }
 }
