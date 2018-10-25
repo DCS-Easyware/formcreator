@@ -799,20 +799,21 @@ EOS;
             $classname = 'PluginFormcreator'.ucfirst($question_line['fieldtype']).'Field';
             if (class_exists($classname)) {
                $fieldObject = new $classname($question_line, $question_line['answer']);
-            }
+      }
 
-            $id    = $question_line['id'];
-            if (!PluginFormcreatorFields::isVisible($question_line['id'], $answers_values)) {
-               $name = '';
-               $value = '';
-            } else {
-               $name  = $question_line['name'];
-               $value = $fieldObject->prepareQuestionInputForTarget($fieldObject->getValue());
-            }
+      $id    = $question_line['id'];
+
+         if (!PluginFormcreatorFields::isVisible($question_line['id'], $answers_values)) {
+            $name = '';
+            $value = '';
+         } else {
+            $name  = $question_line['name'];
+            $value = $fieldObject->prepareQuestionInputForTarget($fieldObject->getValue());
+         }
             if ($question_line['fieldtype'] !== 'file') {
                $content = str_replace('##question_' . $id . '##', addslashes($name), $content);
                $content = str_replace('##answer_' . $id . '##', $value, $content);
-            } else {
+               } else {
                if (strpos($content, '##answer_' . $id . '##') !== false) {
                   $content = str_replace('##question_' . $id . '##', addslashes($name), $content);
                   if ($value !== '') {
@@ -822,7 +823,7 @@ EOS;
                      $this->attachedDocuments[$value] = true;
                   } else {
                      $content = str_replace('##answer_' . $id . '##', '', $content);
-                  }
+               }
                }
             }
          }

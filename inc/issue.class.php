@@ -496,8 +496,6 @@ class PluginFormcreatorIssue extends CommonDBTM {
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
    }
 
-
-
    static function getDefaultSearchRequest() {
 
       $search = ['criteria' => [0 => ['field'      => 4,
@@ -553,7 +551,6 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
       return "";
    }
-
 
    static function getClosedStatusArray() {
       return Ticket::getClosedStatusArray();
