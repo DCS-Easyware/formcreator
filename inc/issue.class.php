@@ -287,192 +287,72 @@ class PluginFormcreatorIssue extends CommonDBTM {
    }
 
    public function rawSearchOptions() {
-      $tab = [];
+      $ticket = new Ticket();
+      if (isset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions'])) {
+         $tab = $ticket->rawSearchOptions();
+         $configs = Config::getConfigurationValues('formcreator');
 
-      $tab[] = [
-         'id'                 => 'common',
-         'name'               => __('Issue', 'formcreator')
-      ];
+         if ($_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] == 'myrequest') {
+            $searchfields = importArrayFromDB($configs['myrequest_searchfields']);
+            $columns = importArrayFromDB($configs['myrequest_columns']);
+         } else if ($_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] == 'allrequest') {
+            $searchfields = importArrayFromDB($configs['allrequest_searchfields']);
+            $columns = importArrayFromDB($configs['allrequest_columns']);
+         } else if (strstr($_SESSION['glpi_plugin_formcreator_restrictsearchoptions'], 'group')) {
+            $vals = explode('-', $_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
+            $searchfields = importArrayFromDB($configs['grouprequest_'.$vals[1].'_searchfields']);
+            $columns = importArrayFromDB($configs['grouprequest_'.$vals[1].'_columns']);
+         } else {
+            return [];
+         }
+         $group = [];
+         $tablist = [];
+         $searchid_required = [2, 83];
+         // case for after map search
+         if (isset($_GET['criteria'])) {
+            foreach ($_GET['criteria'] as $criteria) {
+               if (($criteria['field'] == 998
+                     || $criteria['field'] == 999)
+                    && !in_array($criteria['field'], $searchid_required)) {
+                  $searchid_required[] = $criteria['field'];
+               }
+            }
+         }
 
-      $tab[] = [
-         'id'                 => '1',
-         'table'              => $this::getTable(),
-         'field'              => 'name',
-         'name'               => __('Name'),
-         'datatype'           => 'itemlink',
-         'massiveaction'      => false,
-         'forcegroupby'       => true,
-         'additionalfields'   => [
-            '0'                  => 'display_id'
-         ]
-      ];
-
-      $tab[] = [
-         'id'                 => '2',
-         'table'              => $this::getTable(),
-         'field'              => 'display_id',
-         'name'               => __('ID'),
-         'datatype'           => 'string',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '3',
-         'table'              => $this::getTable(),
-         'field'              => 'sub_itemtype',
-         'name'               => __('Type'),
-         'searchtype'         => [
-            '0'                  => 'equals',
-            '1'                  => 'notequals'
-         ],
-         'datatype'           => 'specific',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '4',
-         'table'              => $this::getTable(),
-         'field'              => 'status',
-         'name'               => __('Status'),
-         'searchtype'         => [
-            '0'                  => 'equals',
-            '1'                  => 'notequals'
-         ],
-         'datatype'           => 'specific',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '5',
-         'table'              => $this::getTable(),
-         'field'              => 'date_creation',
-         'name'               => __('Opening date'),
-         'datatype'           => 'datetime',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '6',
-         'table'              => $this::getTable(),
-         'field'              => 'date_mod',
-         'name'               => __('Last update'),
-         'datatype'           => 'datetime',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '7',
-         'table'              => 'glpi_entities',
-         'field'              => 'completename',
-         'name'               => __('Entity'),
-         'datatype'           => 'dropdown',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '8',
-         'table'              => 'glpi_users',
-         'field'              => 'name',
-         'linkfield'          => 'requester_id',
-         'name'               => __('Requester'),
-         'datatype'           => 'dropdown',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '9',
-         'table'              => 'glpi_users',
-         'field'              => 'name',
-         'linkfield'          => 'validator_id',
-         'name'               => __('Form approver', 'formcreator'),
-         'datatype'           => 'dropdown',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '10',
-         'table'              => $this::getTable(),
-         'field'              => 'comment',
-         'name'               => __('Comment'),
-         'datatype'           => 'text',
-         'massiveaction'      => false
-      ];
-
-      $tab[] = [
-         'id'                 => '11',
-         'table'              => 'glpi_users',
-         'field'              => 'name',
-         'linkfield'          => 'users_id_validate',
-         'name'               => __('Ticket approver', 'formcreator'),
-         'datatype'           => 'dropdown',
-         'right'              => [
-            '0'                  => 'validate_request',
-            '1'                  => 'validate_incident'
-         ],
-         'forcegroupby'       => false,
-         'massiveaction'      => false,
-         'joinparams'         => [
-            'beforejoin'         => [
-               '0'                  => [
-                  'table'              => 'glpi_items_tickets',
-                  'joinparams'         => [
-                     'jointype'           => 'itemtypeonly',
-                     'specific_itemtype'  => 'PluginFormcreatorForm_Answer',
-                     'condition'          => 'AND `REFTABLE`.`original_id` = `NEWTABLE`.`items_id`'
-                  ]
-               ],
-               '1'                  => [
-                  'table'              => 'glpi_ticketvalidations'
-               ]
-            ]
-         ]
-      ];
-
-      $tab[] = [
-         'id'                 => '14',
-         'table'              => User::getTable(),
-         'field'              => 'name',
-         'linkfield'          => 'users_id',
-         'name'               => __('Technician'),
-         'datatype'           => 'dropdown',
-         'forcegroupby'       => false,
-         'massiveaction'      => false,
-         'joinparams'         => [
-            'beforejoin'         => [
-               'table'              => Ticket_User::getTable(),
-               'linkfield'          => 'original_id',
-               'joinparams'         => [
-                  'jointype'           => 'empty',
-               ]
-            ]
-         ]
-      ];
-
-      $tab[] = [
-         'id'                 => '15',
-         'table'              => Group::getTable(),
-         'field'              => 'name',
-         'linkfield'          => 'groups_id',
-         'name'               => __('Technician group'),
-         'datatype'           => 'dropdown',
-         'forcegroupby'       => false,
-         'massiveaction'      => false,
-         'joinparams'         => [
-            'beforejoin'         => [
-               'table'              => Group_Ticket::getTable(),
-               'linkfield'          => 'original_id',
-               'joinparams'         => [
-                  'jointype'           => 'empty',
-               ]
-            ]
-         ]
-      ];
-
-      return $tab;
+         foreach ($tab as $row) {
+            if (!isset($row['id'])) {
+               continue;
+            } else if (!is_numeric($row['id'])) {
+               if (count($group) > 1) {
+                  $tablist = array_merge($tablist, $group);
+               }
+               $group = [];
+               $group[] = $row;
+            } else if (in_array($row['id'], $searchfields)
+                  || in_array($row['id'], $columns)
+                  || in_array($row['id'], $searchid_required)) {
+               $group[] = $row;
+            }
+         }
+         if (count($group) > 1) {
+            $tablist = array_merge($tablist, $group);
+         }
+         return $tablist;
+      }
+      return $ticket->rawSearchOptions();
    }
 
-   public static function getSpecificValueToSelect($field, $name='', $values='', array $options = []) {
+   /**
+    *
+    * @param boolean $restricted (if true, get only allowed in the config)
+    */
+   public function getRawSearchOptions($restricted=true) {
+      $tab = [];
 
+   }
+
+   public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
+      return parent::getSpecificValueToSelect($field, $name, $values, $options);
       if (!is_array($values)) {
          $values = [$field => $values];
       }
@@ -497,13 +377,12 @@ class PluginFormcreatorIssue extends CommonDBTM {
    }
 
 
-
    static function getDefaultSearchRequest() {
 
-      $search = ['criteria' => [0 => ['field'      => 4,
+      $search = ['criteria' => [0 => ['field'      => 12,
                                       'searchtype' => 'equals',
                                       'value'      => 'notclosed']],
-                 'sort'     => 6,
+                 'sort'     => 2,
                  'order'    => 'DESC'];
 
       if (Session::haveRight(self::$rightname, Ticket::READALL)) {
@@ -584,29 +463,51 @@ class PluginFormcreatorIssue extends CommonDBTM {
    }
 
    static function getIncomingCriteria() {
-      return ['criteria' => [['field' => 4,
-                              'searchtype' => 'equals',
-                              'value'      => 'process',
-                              'value'      => 'notold']],
-              'reset'    => 'reset'];
+      return[
+         'criteria' => [
+            [
+               'field' => 12,
+               'searchtype' => 'equals',
+               'value'      => 'notold'
+            ],
+            [
+               'link'       => 'AND',
+               'field'      => 4,
+               'searchtype' => 'equals',
+               'value'      => $_SESSION['glpiID']
+            ]
+         ],
+         'reset'    => 'reset'
+      ];
    }
 
    static function getWaitingCriteria() {
-      return ['criteria' => [['field' => 4,
-                              'searchtype' => 'equals',
-                              'value'      => 'process',
-                              'value'      => Ticket::WAITING]],
-              'reset'    => 'reset'];
+      return[
+         'criteria' => [
+            [
+               'field' => 12,
+               'searchtype' => 'equals',
+               'value'      => Ticket::WAITING
+            ],
+            [
+               'link'       => 'AND',
+               'field'      => 4,
+               'searchtype' => 'equals',
+               'value'      => $_SESSION['glpiID']
+            ]
+         ],
+         'reset'    => 'reset'
+      ];
    }
 
    static function getValidateCriteria() {
       return ['criteria' => [['field' => 4,
-                              'searchtype' => 'equals',
+               'searchtype' => 'equals',
                               'value'      => 'process',
                               'value'      => 'notclosed',
                               'link'       => 'AND'],
                              ['field' => 9,
-                              'searchtype' => 'equals',
+               'searchtype' => 'equals',
                               'value'      => 'process',
                               'value'      => $_SESSION['glpiID'],
                               'link'       => 'AND'],
@@ -624,10 +525,22 @@ class PluginFormcreatorIssue extends CommonDBTM {
    }
 
    static function getSolvedCriteria() {
-      return ['criteria' => [['field' => 4,
-                              'searchtype' => 'equals',
-                              'value'      => 'old']],
-              'reset'    => 'reset'];
+      return[
+         'criteria' => [
+            [
+               'field' => 12,
+               'searchtype' => 'equals',
+               'value'      => 'old'
+            ],
+            [
+               'link'       => 'AND',
+               'field'      => 4,
+               'searchtype' => 'equals',
+               'value'      => $_SESSION['glpiID']
+            ]
+         ],
+         'reset'    => 'reset'
+      ];
    }
 
    static function getTicketSummary() {
@@ -637,31 +550,32 @@ class PluginFormcreatorIssue extends CommonDBTM {
          'to_validate' => 0,
          Ticket::SOLVED => 0
       ];
+      $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = 'myrequest';
 
-      $searchIncoming = Search::getDatas('PluginFormcreatorIssue',
+      $searchIncoming = Search::getDatas(Ticket::class,
                                          self::getIncomingCriteria());
       if ($searchIncoming['data']['totalcount'] > 0) {
          $status[Ticket::INCOMING] = $searchIncoming['data']['totalcount'];
       }
 
-      $searchWaiting = Search::getDatas('PluginFormcreatorIssue',
+      $searchWaiting = Search::getDatas(Ticket::class,
                                          self::getWaitingCriteria());
       if ($searchWaiting['data']['totalcount'] > 0) {
          $status[Ticket::WAITING] = $searchWaiting['data']['totalcount'];
       }
 
-      $searchValidate = Search::getDatas('PluginFormcreatorIssue',
+      $searchValidate = Search::getDatas(Ticket::class,
                                          self::getValidateCriteria());
       if ($searchValidate['data']['totalcount'] > 0) {
          $status['to_validate'] = $searchValidate['data']['totalcount'];
       }
 
-      $searchSolved = Search::getDatas('PluginFormcreatorIssue',
+      $searchSolved = Search::getDatas(Ticket::class,
                                          self::getSolvedCriteria());
       if ($searchSolved['data']['totalcount'] > 0) {
          $status[Ticket::SOLVED] = $searchSolved['data']['totalcount'];
       }
-
+      unset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
       return $status;
    }
 
@@ -698,5 +612,453 @@ class PluginFormcreatorIssue extends CommonDBTM {
       }
 
       return $input;
+   }
+
+   static function show($type) {
+      global $CFG_GLPI;
+
+      $itemtype = 'PluginFormcreatorIssue';
+
+      $configs = Config::getConfigurationValues('formcreator');
+      $params = Search::manageParams($itemtype, $_GET);
+      $params['showbookmark'] = false;
+      echo "<div class='search_page'>";
+
+      $searchfields = [];
+      $columns = [];
+
+      switch($type) {
+
+         case 'myrequest':
+            foreach ($params['criteria'] as $index=>$row) {
+               if (isset($row['field'])
+                     && $row['field'] == 4) {
+                  unset($params['criteria'][$index]);
+               }
+            }
+
+            if (!$configs['is_myrequest_searchengine']) {
+               echo '<div style="display: none;">';
+            }
+            $params['target'] = $CFG_GLPI['root_doc'].'/plugins/formcreator/front/issue.php';
+            $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = 'myrequest';
+            Search::showGenericSearch($itemtype, $params);
+            unset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
+            if (!$configs['is_myrequest_searchengine']) {
+               echo '</div>';
+            }
+
+            $searchfields = importArrayFromDB($configs['myrequest_searchfields']);
+            $columns = importArrayFromDB($configs['myrequest_columns']);
+            if (!in_array(4, $columns)) {
+               $columns[] = 4;
+            }
+            break;
+
+         case 'allrequest':
+            if (!$configs['is_allrequest_searchengine']) {
+               echo '<div style="display: none;">';
+            }
+            $params['target'] = $CFG_GLPI['root_doc'].'/plugins/formcreator/front/allissue.php';
+            $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = 'allrequest';
+            Search::showGenericSearch($itemtype, $params);
+            unset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
+            if (!$configs['is_allrequest_searchengine']) {
+               echo '</div>';
+            }
+
+            $searchfields = importArrayFromDB($configs['allrequest_searchfields']);
+            $columns = importArrayFromDB($configs['allrequest_columns']);
+            break;
+
+         case 'group':
+            foreach ($params['criteria'] as $index=>$row) {
+               if (isset($row['field'])
+                     && $row['field'] == 71) {
+                  unset($params['criteria'][$index]);
+               }
+            }
+            if (isset($_GET['groups_id'])
+                  && is_numeric($_GET['groups_id'])) {
+               if (!$configs['is_grouprequest_'.$_GET['groups_id'].'_searchengine']) {
+                  echo '<div style="display: none;">';
+               }
+               $params['target'] = $CFG_GLPI['root_doc'].'/plugins/formcreator/front/groupissue.php?groups_id='.$_GET['groups_id'];
+               $params['addhidden'] = ['groups_id' => $_GET['groups_id']];
+               $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = 'group-'.$_GET['groups_id'];
+               Search::showGenericSearch($itemtype, $params);
+               unset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
+               if (!$configs['is_grouprequest_'.$_GET['groups_id'].'_searchengine']) {
+                  echo '</div>';
+               }
+
+               $searchfields = importArrayFromDB($configs['grouprequest_'.$_GET['groups_id'].'_searchfields']);
+               $columns = importArrayFromDB($configs['grouprequest_'.$_GET['groups_id'].'_columns']);
+               if (!in_array(71, $columns)) {
+                  $columns[] = 71;
+               }
+            }
+            break;
+
+      }
+
+      // case for after map search
+      if (isset($_GET['criteria'])) {
+         foreach ($_GET['criteria'] as $criteria) {
+            if (($criteria['field'] == 998
+                  || $criteria['field'] == 999)
+                 && !in_array($criteria['field'], $columns)) {
+               $columns[] = $criteria['field'];
+            }
+         }
+      }
+      if (in_array(998, $columns)
+            && !in_array(83, $columns)) {
+         $columns[] = 83;
+      }
+
+      if ($params['as_map'] == 1) {
+         if (!in_array(83, $columns)) {
+            $columns[] = 83;
+         }
+
+         $params['criteria'][] = [
+            'link'         => 'AND NOT',
+            'field'        => ($itemtype == 'Location') ? 21 : 998,
+            'searchtype'   => 'contains',
+            'value'        => 'NULL'
+         ];
+         $params['criteria'][] = [
+            'link'         => 'AND NOT',
+            'field'        => ($itemtype == 'Location') ? 20 : 999,
+            'searchtype'   => 'contains',
+            'value'        => 'NULL'
+         ];
+         $params['as_map'] = 1;
+      }
+
+      $data = Search::prepareDatasForSearch($itemtype, $params);
+
+      // Add search specifics criteria
+      switch($type) {
+
+         case 'myrequest':
+            $data['search']['criteria'][] = [
+               'link'       => 'AND',
+               'field'      => 4,
+               'searchtype' => 'equals',
+               'value'      => $_SESSION['glpiID']
+            ];
+            // used for the map
+            $params['criteria'][] = [
+               'link'         => 'AND',
+               'field'        => 4,
+               'searchtype' => 'equals',
+               'value'      => $_SESSION['glpiID']
+            ];
+            break;
+
+         case 'allrequest':
+            break;
+
+         case 'group':
+            $data['search']['criteria'][] = [
+               'link'       => 'AND',
+               'field'      => 71,
+               'searchtype' => 'equals',
+               'value'      => $_GET['groups_id']
+            ];
+            // used for the map
+            $params['criteria'][] = [
+               'link'         => 'AND',
+               'field'        => 71,
+               'searchtype' => 'equals',
+               'value'      => $_GET['groups_id']
+            ];
+            break;
+      }
+
+      // Modify to force columns to view
+      $data['toview'] = [2];
+      $data['tocompute'] = [2];
+      foreach ($columns as $searchid) {
+         if ($searchid != 2) {
+            $data['toview'][] = $searchid;
+            $data['tocompute'][] = $searchid;
+         }
+      }
+      $data['search']['sort'] = 2;
+      $data['itemtype'] = 'Ticket';
+      Search::constructSQL($data);
+
+/* for restrict type (type = form)
+$sql = $data['sql']['search'];
+$sql  = str_replace(' WHERE ', 'LEFT JOIN glpi_plugin_formcreator_issues ON glpi_tickets.id=glpi_plugin_formcreator_issues.original_id WHERE ', $sql);
+$sql = str_replace(' GROUP BY ', ' AND glpi_plugin_formcreator_issues.original_id IS NOT NULL GROUP BY ', $sql);
+$data['sql']['search'] = $sql;
+*/
+      Search::constructData($data);
+      $data['itemtype'] = 'PluginFormcreatorIssue';
+
+      // change link to ticket to issue of formcreator
+      if (isset($data['data']['rows'])) {
+         foreach ($data['data']['rows'] as $index_row=>$row) {
+            foreach ($row as $index_item=>$item) {
+               if (isset($item['displayname'])
+                     && strstr($item['displayname'], 'front/ticket.form.php')) {
+                  $item['displayname'] = str_replace('front/ticket.form.php?id='.$row['raw']['id'].'"', 'plugins/formcreator/front/issue.form.php?id='.$row['raw']['id'].'&sub_itemtype=Ticket"', $item['displayname']);
+                  $data['data']['rows'][$index_row][$index_item] = $item;
+               }
+            }
+         }
+      }
+
+      $issue = new PluginFormcreatorIssue();
+      $searchoptions = $issue->rawSearchOptions();
+      $display_map_link = false;
+      switch($type) {
+
+         case 'myrequest':
+            foreach ($searchoptions as $row) {
+               if (isset($row['id'])
+                     && $row['id'] == 4) {
+                  unset($row['id']);
+                  Search::$search['PluginFormcreatorIssue'][4] = $row;
+                  break;
+               }
+            }
+            if ($configs['is_myrequest_map']) {
+               $display_map_link = true;
+            }
+            break;
+
+         case 'allrequest':
+            if ($configs['is_allrequest_map']) {
+               $display_map_link = true;
+            }
+            break;
+
+         case 'group':
+            foreach ($searchoptions as $row) {
+               if (isset($row['id'])
+                     && $row['id'] == 71) {
+                  unset($row['id']);
+                  Search::$search['PluginFormcreatorIssue'][71] = $row;
+                  break;
+               }
+            }
+            $data['search']['target'] = $CFG_GLPI['root_doc'].'/plugins/formcreator/front/groupissue.php?groups_id='.$_GET['groups_id'];
+
+            if ($configs['is_grouprequest_'.$_GET['groups_id'].'_map']) {
+               $display_map_link = true;
+            }
+            break;
+
+      }
+
+      // Map link
+      if ($display_map_link) {
+         echo  "<div class='center'><div class='pager_controls'><label for='as_map'><span title='".__s('Show as map')."' class='pointer fa fa-globe'
+            onClick=\"toogle('as_map','','','');
+                        document.forms['searchform".$data["itemtype"]."'].submit();\"></span></label></div></div>";
+      }
+
+      Search::displayData($data);
+
+      if ($params['as_map'] == 1
+            && $display_map_link) {
+
+         $itemtype = 'Ticket';
+
+         // MAP......
+         if ($data['data']['totalcount'] > 0) {
+            $target = $data['search']['target'];
+            $criteria = $data['search']['criteria'];
+            array_pop($criteria);
+            array_pop($criteria);
+            // required to have the location name in the search list
+            $criteria[] = [
+               'link'         => 'AND',
+               'field'        => ($itemtype == 'Location') ? 1 : ($itemtype == 'Ticket') ? 83 : 3,
+               'searchtype'   => 'contains',
+               'value'        => '^'
+            ];
+            $criteria[] = [
+               'link'         => 'AND',
+               'field'        => ($itemtype == 'Location') ? 21 : 998,
+               'searchtype'   => 'contains',
+               'value'        => '^LATLOCATION$'
+            ];
+            $criteria[] = [
+               'link'         => 'AND',
+               'field'        => ($itemtype == 'Location') ? 20 : 999,
+               'searchtype'   => 'contains',
+               'value'        => '^LNGLOCATION$'
+            ];
+
+            $globallinkto = Toolbox::append_params(
+               [
+                  'criteria'     => Toolbox::stripslashes_deep($criteria),
+                  'metacriteria' => Toolbox::stripslashes_deep($data['search']['metacriteria'])
+               ],
+               '&amp;'
+            );
+            $parameters = "as_map=0&amp;sort=".$data['search']['sort']."&amp;order=".$data['search']['order'].'&amp;'.
+                           $globallinkto;
+
+            if (strpos($target, '?') == false) {
+               $fulltarget = $target."?".$parameters;
+            } else {
+               $fulltarget = $target."&".$parameters;
+            }
+            $typename = class_exists($itemtype) ? $itemtype::getTypeName($data['data']['totalcount']) :
+                           ($itemtype == 'AllAssets' ? __('assets') : $itemtype);
+
+            echo "<div class='center'><p>".__('Search results for localized items only')."</p>";
+            $js = "$(function() {
+                  var map = initMap($('#page'), 'map', 'full');
+                  _loadMap(map, '$itemtype');
+               });
+
+            var _loadMap = function(map_elt, itemtype) {
+               L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
+               var _micon = 'circle';
+
+               var stdMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'blue'
+               });
+
+               var aMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'cadetblue'
+               });
+
+               var bMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'purple'
+               });
+
+               var cMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'darkpurple'
+               });
+
+               var dMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'red'
+               });
+
+               var eMarker = L.AwesomeMarkers.icon({
+                  icon: _micon,
+                  markerColor: 'darkred'
+               });
+
+
+               //retrieve geojson data
+               map_elt.spin(true);
+               $.ajax({
+                  dataType: 'json',
+                  method: 'POST',
+                  url: '{$CFG_GLPI['root_doc']}/ajax/map.php',
+                  data: {
+                     itemtype: itemtype,
+                     params: ".json_encode($params)."
+                  }
+               }).done(function(data) {
+                  var _points = data.points;
+                  var _markers = L.markerClusterGroup({
+                     iconCreateFunction: function(cluster) {
+                        var childCount = cluster.getChildCount();
+
+                        var markers = cluster.getAllChildMarkers();
+                        var n = 0;
+                        for (var i = 0; i < markers.length; i++) {
+                           n += markers[i].count;
+                        }
+
+                        var c = ' marker-cluster-';
+                        if (n < 10) {
+                           c += 'small';
+                        } else if (n < 100) {
+                           c += 'medium';
+                        } else {
+                           c += 'large';
+                        }
+
+                        return new L.DivIcon({ html: '<div><span>' + n + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+                     }
+                  });
+
+                  $.each(_points, function(index, point) {
+                     var _title = '<strong>' + point.title + '</strong><br/><a href=\''+'$fulltarget'.replace(/LATLOCATION/, point.lat).replace(/LNGLOCATION/, point.lng)+'\'>".sprintf(__('%1$s %2$s'), 'COUNT', $typename)."'.replace(/COUNT/, point.count)+'</a>';
+                     if (point.types) {
+                        $.each(point.types, function(tindex, type) {
+                           _title += '<br/>".sprintf(__('%1$s %2$s'), 'COUNT', 'TYPE')."'.replace(/COUNT/, type.count).replace(/TYPE/, type.name);
+                        });
+                     }
+                     var _icon = stdMarker;
+                     if (point.count < 10) {
+                        _icon = stdMarker;
+                     } else if (point.count < 100) {
+                        _icon = aMarker;
+                     } else if (point.count < 1000) {
+                        _icon = bMarker;
+                     } else if (point.count < 5000) {
+                        _icon = cMarker;
+                     } else if (point.count < 10000) {
+                        _icon = dMarker;
+                     } else {
+                        _icon = eMarker;
+                     }
+                     var _marker = L.marker([point.lat, point.lng], { icon: _icon, title: point.title });
+                     _marker.count = point.count;
+                     _marker.bindPopup(_title);
+                     _markers.addLayer(_marker);
+                  });
+
+                  map_elt.addLayer(_markers);
+                  map_elt.fitBounds(
+                     _markers.getBounds(), {
+                        padding: [50, 50],
+                        maxZoom: 12
+                     }
+                  );
+               }).fail(function (response) {
+                  var _data = response.responseJSON;
+                  var _message = '".__s('An error occured loading data :(')."';
+                  if (_data.message) {
+                     _message = _data.message;
+                  }
+                  var fail_info = L.control();
+                  fail_info.onAdd = function (map) {
+                     this._div = L.DomUtil.create('div', 'fail_info');
+                     this._div.innerHTML = _message + '<br/><span id=\'reload_data\'><i class=\'fa fa-refresh\'></i> ".__s('Reload')."</span>';
+                     return this._div;
+                  };
+                  fail_info.addTo(map_elt);
+                  $('#reload_data').on('click', function() {
+                     $('.fail_info').remove();
+                     _loadMap(map_elt);
+                  });
+               }).always(function() {
+                  //hide spinner
+                  map_elt.spin(false);
+               });
+            }
+
+            ";
+            echo Html::scriptBlock($js);
+            echo "</div>";
+         }
+      }
+      echo "</div>";
+
+      // hack for the user action when want add a new criteria
+      if ($type == 'group') {
+         $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = $type.'-'.$_GET['groups_id'];
+      } else {
+         $_SESSION['glpi_plugin_formcreator_restrictsearchoptions'] = $type;
+      }
    }
 }

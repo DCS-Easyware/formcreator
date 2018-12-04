@@ -21,50 +21,37 @@
  * You should have received a copy of the GNU General Public License
  * along with Formcreator. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
- * @author    Thierry Bugier
- * @author    Jérémy Moreau
- * @copyright Copyright © 2011 - 2018 Teclib'
- * @license   GPLv3+ http://www.gnu.org/licenses/gpl.txt
+ * @author    David Durieux
+ * @copyright
+ * @license   http://www.gnu.org/licenses/gpl.txt GPLv3+
  * @link      https://github.com/pluginsGLPI/formcreator/
  * @link      https://pluginsglpi.github.io/formcreator/
  * @link      http://plugins.glpi-project.org/#/plugin/formcreator
  * ---------------------------------------------------------------------
  */
 
-require_once ('../../../inc/includes.php');
+include ('../../../inc/includes.php');
 
-// Check if plugin is activated...
-$plugin = new Plugin();
-if (!$plugin->isActivated('formcreator')) {
-   Html::displayNotFoundError();
+Session::checkRight("config", UPDATE);
+$pfcConfig = new PluginFormcreatorConfig();
+
+if (!empty($_POST["update"])) {
+   $config = new Config();
+   $_POST['id'] = 1;
+   $config->update($_POST);
+   Html::back();
+} else if (!empty($_POST['add_group'])) {
+   $pfcConfig->addGroup($_POST);
+   Html::back();
 }
 
-if (PluginFormcreatorIssue::canView()) {
-   if (plugin_formcreator_replaceHelpdesk()) {
-      PluginFormcreatorWizard::header(__('Service catalog', 'formcreator'));
-   } else {
-      if ($_SESSION['glpiactiveprofile']['interface'] == 'helpdesk') {
-         Html::helpHeader(
-            __('Form Creator', 'formcreator'),
-            $_SERVER['PHP_SELF']
-         );
-      } else {
-         Html::header(
-            __('Form Creator', 'formcreator'),
-            $_SERVER['PHP_SELF'],
-            'helpdesk',
-            'PluginFormcreatorFormlist'
-         );
-      }
-   }
+Html::header(
+   PluginFormcreatorForm::getTypeName(2),
+   $_SERVER['PHP_SELF'],
+   'admin',
+   'PluginFormcreatorForm',
+   'config'
+);
 
-   PluginFormcreatorIssue::show('myrequest');
-
-   if (plugin_formcreator_replaceHelpdesk()) {
-      PluginFormcreatorWizard::footer();
-   } else {
-      Html::footer();
-   }
-} else {
-   Html::displayRightError();
-}
+$pfcConfig->showForm();
+Html::footer();

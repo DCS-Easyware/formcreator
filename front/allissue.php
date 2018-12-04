@@ -24,48 +24,47 @@
  * @author    Thierry Bugier
  * @author    Jérémy Moreau
  * @copyright Copyright © 2011 - 2018 Teclib'
- * @license   GPLv3+ http://www.gnu.org/licenses/gpl.txt
+ * @license   http://www.gnu.org/licenses/gpl.txt GPLv3+
  * @link      https://github.com/pluginsGLPI/formcreator/
  * @link      https://pluginsglpi.github.io/formcreator/
  * @link      http://plugins.glpi-project.org/#/plugin/formcreator
  * ---------------------------------------------------------------------
  */
 
-if (!defined('GLPI_ROOT')) {
-   die("Sorry. You can't access this file directly");
+require_once ('../../../inc/includes.php');
+
+// Check if plugin is activated...
+$plugin = new Plugin();
+if (!$plugin->isActivated('formcreator')) {
+   Html::displayNotFoundError();
 }
 
-class PluginFormcreatorFormList extends CommonGLPI
-{
-
-   /**
-    * Returns the type name with consideration of plural
-    *
-    * @param number $nb Number of item(s)
-    * @return string Itemtype name
-    */
-   public static function getTypeName($nb = 0) {
-      return _n('Form', 'Forms', $nb, 'formcreator');
-   }
-
-   static function getMenuContent() {
-      global $CFG_GLPI;
-
-      $menu = parent::getMenuContent();
-      $image = '<img src="' . $CFG_GLPI['root_doc'] . '/plugins/formcreator/pics/check.png"
-                  title="' . __('Forms waiting for validation', 'formcreator') . '"
-                  alt="' . __('Forms waiting for validation', 'formcreator') . '">';
-      $image_home = '<i class="fas fa-home"></i>';
-
-      $menu['links']['search'] = PluginFormcreatorForm::getSearchURL(false);
-      if (PluginFormcreatorForm::canCreate()) {
-         $menu['links']['add'] = PluginFormcreatorForm::getFormURL(false);
+if (PluginFormcreatorIssue::canView()) {
+   if (plugin_formcreator_replaceHelpdesk()) {
+      PluginFormcreatorWizard::header(__('Service catalog', 'formcreator'));
+   } else {
+      if ($_SESSION['glpiactiveprofile']['interface'] == 'helpdesk') {
+         Html::helpHeader(
+            __('Form Creator', 'formcreator'),
+            $_SERVER['PHP_SELF']
+         );
+      } else {
+         Html::header(
+            __('Form Creator', 'formcreator'),
+            $_SERVER['PHP_SELF'],
+            'helpdesk',
+            'PluginFormcreatorFormlist'
+         );
       }
-      $menu['links'][$image_home] = PluginFormcreatorFormList::getSearchURL(false);
-      $menu['links']['config'] = PluginFormcreatorConfig::getFormURL(false);
-      $menu['links'][$image]   = PluginFormcreatorForm_Answer::getSearchURL(false);
-
-      return $menu;
    }
 
+   PluginFormcreatorIssue::show('allrequest');
+
+   if (plugin_formcreator_replaceHelpdesk()) {
+      PluginFormcreatorWizard::footer();
+   } else {
+      Html::footer();
+   }
+} else {
+   Html::displayRightError();
 }
