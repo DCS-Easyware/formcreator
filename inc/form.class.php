@@ -102,8 +102,10 @@ class PluginFormcreatorForm extends CommonDBTM
                                 title="' . __('Forms waiting for validation', 'formcreator') . '">';
       $import_image     = '<img src="' . $CFG_GLPI['root_doc'] . '/plugins/formcreator/pics/import.png"
                                 title="' . __('Import forms', 'formcreator') . '">';
-      $menu['links']['search']          = PluginFormcreatorFormList::getSearchURL(false);
-      $menu['links']['config']          = PluginFormcreatorForm::getSearchURL(false);
+      $image_home = '<i class="fa fa-home"></i>';
+      $menu['links']['search']          = PluginFormcreatorForm::getSearchURL(false);
+      $menu['links'][$image_home]       = PluginFormcreatorFormList::getSearchURL(false);
+      $menu['links']['config']          = PluginFormcreatorConfig::getFormURL(false);
       $menu['links'][$validation_image] = PluginFormcreatorForm_Answer::getSearchURL(false);
       $menu['links'][$import_image]     = PluginFormcreatorForm::getFormURL(false)."?import_form=1";
 

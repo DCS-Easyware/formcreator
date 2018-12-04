@@ -419,3 +419,18 @@ function plugin_formcreator_dynamicReport($params) {
 
    return false;
 }
+
+function plugin_formcreator_getAddSearchOptions($itemtype) {
+   /*
+   $tab = [];
+
+   $tab[15150]['table']     = 'glpi_plugin_formcreator_issues';
+   $tab[15150]['field']     = 'original_id';
+   $tab[15150]['linkfield'] = '';
+   $tab[15150]['name']      = "formcreator > issue ID";
+   $tab[15150]['joinparams']  = ['jointype' => 'child'];
+   $tab[15150]['massiveaction'] = false;
+
+   return $tab;
+    */
+}

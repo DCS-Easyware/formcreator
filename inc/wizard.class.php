@@ -37,16 +37,21 @@ if (!defined('GLPI_ROOT')) {
 
 class PluginFormcreatorWizard {
 
-   const MENU_CATALOG      = 1;
-   const MENU_LAST_FORMS   = 2;
-   const MENU_RESERVATIONS = 3;
-   const MENU_FEEDS        = 4;
-   const MENU_BOOKMARKS    = 5;
-   const MENU_HELP         = 6;
-   const MENU_LINKS        = 7;
+   const MENU_CATALOG        = 1;
+   const MENU_LAST_FORMS     = 2;
+   const MENU_RESERVATIONS   = 3;
+   const MENU_FEEDS          = 4;
+   const MENU_BOOKMARKS      = 5;
+   const MENU_HELP           = 6;
+   const MENU_LINKS          = 7;
+   const MENU_LAST_ALL_FORMS = 8;
 
    public static function header($title) {
       global $CFG_GLPI, $HEADER_LOADED, $DB;
+
+      if (isset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions'])) {
+         unset($_SESSION['glpi_plugin_formcreator_restrictsearchoptions']);
+      }
 
       // Print a nice HTML-head for help page
       if ($HEADER_LOADED) {
@@ -111,11 +116,38 @@ class PluginFormcreatorWizard {
       echo '<span class="label">'.__('Seek assistance', 'formcreator').'</span>';
       echo '</a></li>';
 
+      $configs = Config::getConfigurationValues('formcreator');
+
       echo '<li class="' . ($activeMenuItem == self::MENU_LAST_FORMS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
       echo '<a href="' . $CFG_GLPI["root_doc"].'/plugins/formcreator/front/issue.php?reset=reset' . '">';
-      echo '<span class="fa fa-list fc_list_icon" title="'.__('My requests for assistance', 'formcreator').'"></span>';
+      echo '<span class="fa fa-user fc_list_icon" title="'.__('My requests for assistance', 'formcreator').'"></span>';
       echo '<span class="label">'.__('My requests for assistance', 'formcreator').'</span>';
       echo '</a></li>';
+
+      if (Session::haveRight("ticket", Ticket::READGROUP)
+            && $configs['is_allrequest_enabled']) {
+         echo '<li class="' . ($activeMenuItem == self::MENU_LAST_ALL_FORMS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
+         echo '<a href="' . $CFG_GLPI["root_doc"].'/plugins/formcreator/front/allissue.php?reset=reset' . '">';
+         echo '<span class="fa fa-users fc_list_icon" title="'.__('All requests for assistance', 'formcreator').'"></span>';
+         echo '<span class="label">'.__('All requests for assistance', 'formcreator').'</span>';
+         echo '</a></li>';
+      }
+
+      // for groups
+      if (Session::haveRight("ticket", Ticket::READGROUP)) {
+         $group = new Group();
+         $groups = importArrayFromDB($configs['group_list']);
+         foreach ($groups as $groups_id) {
+            if ($configs['is_grouprequest_'.$groups_id.'_enabled']) {
+               $group->getFromDB($groups_id);
+               echo '<li class="' . ($activeMenuItem == 'group-'.$groups_id ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
+               echo '<a href="' . $CFG_GLPI["root_doc"].'/plugins/formcreator/front/groupissue.php?groups_id='.$groups_id.'&reset=reset' . '">';
+               echo '<span class="fa fa-users fc_list_icon" title="'.__('Group').': '.$group->fields['name'].'"></span>';
+               echo '<span class="label">'.__('Group').': '.$group->fields['name'].'</span>';
+               echo '</a></li>';
+            }
+         }
+      }
 
       if (Session::haveRight("reservation", ReservationItem::RESERVEANITEM)) {
          $reservation_item = new reservationitem;
@@ -387,6 +419,17 @@ class PluginFormcreatorWizard {
       if (strpos($_SERVER['REQUEST_URI'], "formcreator/front/issue.php") !== false
           || strpos($_SERVER['REQUEST_URI'], "formcreator/front/issue.form.php") !== false) {
          return self::MENU_LAST_FORMS;
+      }
+      if (strpos($_SERVER['REQUEST_URI'], "formcreator/front/allissue.php") !== false
+          || strpos($_SERVER['REQUEST_URI'], "formcreator/front/allissue.form.php") !== false) {
+         return self::MENU_LAST_ALL_FORMS;
+      }
+      if (strpos($_SERVER['REQUEST_URI'], "formcreator/front/groupissue.php") !== false
+          || strpos($_SERVER['REQUEST_URI'], "formcreator/front/groupissue.form.php") !== false) {
+         if (isset($_GET['groups_id'])
+               && is_numeric($_GET['groups_id'])) {
+            return 'group-'.$_GET['groups_id'];
+         }
       }
       if (strpos($_SERVER['REQUEST_URI'], "formcreator/front/reservationitem.php") !== false) {
          return self::MENU_RESERVATIONS;

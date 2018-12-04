@@ -53,7 +53,24 @@ class PluginFormcreatorInstall {
       $this->createDefaultDisplayPreferences();
       $this->createCronTasks();
       $this->createNotifications();
-      Config::setConfigurationValues('formcreator', ['schema_version' => PLUGIN_FORMCREATOR_SCHEMA_VERSION]);
+      Config::setConfigurationValues('formcreator',
+            [
+               'schema_version'            => PLUGIN_FORMCREATOR_SCHEMA_VERSION,
+               'group_list'                => exportArrayToDB([]),
+
+               'is_myrequest_searchengine' => true,
+               'is_myrequest_map'          => true,
+               'myrequest_type'            => 'form',
+               'myrequest_searchfields'    => exportArrayToDB([]),
+               'myrequest_columns'         => exportArrayToDB([]),
+
+               'is_allrequest_enabled'     => true,
+               'is_allrequest_searchengine'=> true,
+               'is_allrequest_map'         => true,
+               'allrequest_type'           => 'form',
+               'allrequest_searchfields'   => exportArrayToDB([]),
+               'allrequest_columns'        => exportArrayToDB([])
+            ]);
 
       $task = new CronTask();
       PluginFormcreatorIssue::cronSyncIssues($task);
@@ -90,6 +107,10 @@ class PluginFormcreatorInstall {
          case '2.6.5':
             require_once(__DIR__ . '/update_2.6.5_2.6.5-dcs-1.0.php');
             plugin_formcreator_update_2_6_5_dcs_1_0($this->migration);
+
+         case '2.6.5-dcs-1.0':
+            require_once(__DIR__ . '/update_2.6.5-dcs-1.0_2.6.5-dcs-2.0.php');
+            plugin_formcreator_update_2_6_5_dcs_2_0($this->migration);
 
          default:
             // Must be the last case
