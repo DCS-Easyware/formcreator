@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_formcreator_entityconfigs` (
   `avatar` int(11) NOT NULL DEFAULT '1',
   `user_name` int(11) NOT NULL DEFAULT '0',
   `profile_selector` int(11) NOT NULL DEFAULT '1',
+  `use_favorites` int(11) NOT NULL DEFAULT '0',
+  `use_search_engine` int(11) NOT NULL DEFAULT '1',
+  `header_title` varchar(255) NOT NULL DEFAULT '',
+  `page_title` varchar(255) NOT NULL DEFAULT '',
+  `extra_css_uri` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

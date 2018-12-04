@@ -87,6 +87,10 @@ class PluginFormcreatorInstall {
             require_once(__DIR__ . '/update_2.6.2_2.6.3.php');
             plugin_formcreator_update_2_6_3($this->migration);
 
+         case '2.6.5':
+            require_once(__DIR__ . '/update_2.6.5_2.6.5-dcs-1.0.php');
+            plugin_formcreator_update_2_6_5_dcs_1_0($this->migration);
+
          default:
             // Must be the last case
             if ($this->endsWith(PLUGIN_FORMCREATOR_VERSION, "-dev")) {
@@ -204,7 +208,12 @@ class PluginFormcreatorInstall {
             'user_preferences'      => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
             'avatar'                => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
             'user_name'             => ($row['id'] == 0) ? 0 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
-            'profile_selector'      => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT
+            'profile_selector'      => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
+            'use_favorites'         => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
+            'use_search_engine'     => ($row['id'] == 0) ? 1 : PluginFormcreatorEntityconfig::CONFIG_PARENT,
+            'header_title'          => ($row['id'] == 0) ? '' : PluginFormcreatorEntityconfig::CONFIG_PARENT_STRING,
+            'page_title'            => ($row['id'] == 0) ? ':' : PluginFormcreatorEntityconfig::CONFIG_PARENT_STRING,
+            'extra_css_uri'         => ($row['id'] == 0) ? ':' : PluginFormcreatorEntityconfig::CONFIG_PARENT_STRING
          ]);
       }
    }

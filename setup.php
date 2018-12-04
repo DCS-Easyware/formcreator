@@ -33,7 +33,7 @@
 
 global $CFG_GLPI;
 // Version of the plugin
-define('PLUGIN_FORMCREATOR_VERSION', '2.6.5');
+define('PLUGIN_FORMCREATOR_VERSION', '2.6.5+dcs-1.0');
 // Schema version of this version
 define('PLUGIN_FORMCREATOR_SCHEMA_VERSION', '2.6');
 // is or is not an official release of the plugin
@@ -121,22 +121,13 @@ function plugin_init_formcreator() {
    // Add specific CSS
    $PLUGIN_HOOKS['add_css']['formcreator'][] = "css/styles.css";
    /**
-    * Load the relevant javascript/css files only if the services catalog is used rather than the usual Helpdesk
+    * Load an extra CSS file only if it is configured for this
    */
-   if (plugin_formcreator_replaceHelpdesk()) {
-      $PLUGIN_HOOKS['add_css']['formcreator'][] = 'css/extra-styles.css';
+   $extraCss = plugin_formcreator_loadCss();
+   if (! empty($extraCss)) {
+      $PLUGIN_HOOKS['add_css']['formcreator'][] = $extraCss;
+      Toolbox::logInFile('pfc', $extraCss);
    }
-
-
-   // Load customisation css file only if the services catalog is used rather than the usual Helpdesk
-   /*
-   if (is_file(FORMCREATOR_DOC_DIR . '/extra-styles.css')) {
-      if (plugin_formcreator_replaceHelpdesk()) {
-//         Toolbox::logInFile("pfc", "CSS dir: " . FORMCREATOR_DOC_URL . '/extra-styles.css' . PHP_EOL);
-         $PLUGIN_HOOKS['add_css']['formcreator'][] = FORMCREATOR_DOC_URL . '/extra-styles.css';
-      }
-   }
-   */
 
    // Hack for vertical display
    if (isset($CFG_GLPI['layout_excluded_pages'])) {
@@ -328,6 +319,22 @@ function plugin_formcreator_replaceHelpdesk() {
             && $_SESSION['glpiactiveprofile']['interface'] == 'helpdesk') {
          return $helpdeskMode;
       }
+   }
+   return false;
+}
+
+
+/**
+ * Tells if an extra CSS file is to be loaded
+ */
+function plugin_formcreator_loadCss() {
+   if (! plugin_formcreator_replaceHelpdesk()) {
+      return false;
+   }
+   if (isset($_SESSION['glpiactiveprofile']['interface'])
+      && isset($_SESSION['glpiactive_entity'])) {
+      // Interface and active entity are set in session
+      return PluginFormcreatorEntityconfig::getUsedConfig('extra_css_uri', $_SESSION['glpiactive_entity']);
    }
    return false;
 }
