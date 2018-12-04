@@ -2,8 +2,8 @@
 
 The Formcreator plugin allows to customize the services catalog interface with some extra CSS. This documentation file will help to understand how-to... 
 
-On setup the plugin will create a files directory in the Glpi *files/_plugins/formcreator* directory.
+The entity configuration parameter *Extra CSS file URI* allows to define the path to an extra CSS file. If this parameter is not empty, then the plugin will load the specified file as an extra stylesheet and it will consider that the provided path is relative to the plugin installation directory.
 
-If this directory contains an *extra-styles.css* file, this file will be included in the plugin pages to allow specific customization (eg. logo, colors, ...).
-
-An example exists in the *css* directory of the plugin. You can copy the *extra-styles.css* and *_alternate-logo.png* to the *files/_plugins/formcreator* of the glpi application.
+An example exists in the *css* directory of the plugin. You can use it : 
+ - as is. Declare the extra CSS parameter as *css/extra-styles.css*
+ - or copy the *extra-styles.css* and *_alternate-logo.png* to another directory under the plugin installation directory. Set the *Extra CSS file URI* parameter of the concerned entity accordingly to the files location.

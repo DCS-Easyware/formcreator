@@ -117,6 +117,42 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       }
       echo '</td></tr>';
 
+      // Favorites configuration
+      echo "<tr><th colspan='2'>" . __('Favorite searches configuration', 'formcreator') . "</th></tr>";
+      echo "<tr>";
+      echo "<td >" . __('Use Glpi favorites', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["use_favorites"];
+      $inheritedValue = self::getUsedConfig('use_favorites', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("use_favorites", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("use_favorites", $value);
+      }
+      echo "</td></tr>";
+      echo "<tr><td colspan='2'>";
+      echo "<em>" . __('Set this parameter to have a Favorites link in the helpdesk menu.', 'formcreator') . "</em>";
+      echo "</td></tr>";
+
+      // Search engine configuration
+      echo "<tr><th colspan='2'>" . __('Search engine configuration', 'formcreator') . "</th></tr>";
+      echo "<tr>";
+      echo "<td >" . __('Use search engine', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["use_search_engine"];
+      $inheritedValue = self::getUsedConfig('use_search_engine', $ID, self::CONFIG_PARENT);
+      if ($value == self::CONFIG_PARENT) {
+         Dropdown::showYesNo("use_search_engine", $inheritedValue);
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         Dropdown::showYesNo("use_search_engine", $value);
+      }
+      echo "</td></tr>";
+      echo "<tr><td colspan='2'>";
+      echo "<em>" . __('Set this parameter to have a text search engine in the forms categories.', 'formcreator') . "</em>";
+      echo "</td></tr>";
+
       // External links configuration
       echo "<tr><th colspan='2'>" . __('External links configuration', 'formcreator') . "</th></tr>";
       echo "<tr>";
@@ -182,6 +218,19 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       echo "</td></tr>";
 
       echo "<tr>";
+      echo "<td >" . __('Display an application title', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["header_title"];
+      $inheritedValue = self::getUsedConfig('header_title', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="header_title" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="header_title" value="' . $value . '" />';
+      }
+
+      echo "</td></tr>";
+      echo "<tr>";
       echo "<td >" . __('Allow to change user preferences', 'formcreator') . "</td>";
       echo "<td>";
       $value = $this->fields["user_preferences"];
@@ -233,6 +282,35 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       }
       echo "</td></tr>";
 
+      // Extra styling configuration
+      echo "<tr><th colspan='2'>" . __('Extra styling configuration', 'formcreator') . "</th></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Browser tab title', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["page_title"];
+      $inheritedValue = self::getUsedConfig('page_title', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="page_title" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="page_title" value="' . $value . '" />';
+      }
+      echo "</td></tr>";
+
+      echo "<tr>";
+      echo "<td >" . __('Extra CSS file URI', 'formcreator') . "</td>";
+      echo "<td>";
+      $value = $this->fields["extra_css_uri"];
+      $inheritedValue = self::getUsedConfig('extra_css_uri', $ID, self::CONFIG_PARENT_STRING);
+      if ($value == self::CONFIG_PARENT_STRING) {
+         echo '<input type="text" name="extra_css_uri" value="' . $inheritedValue . '" />';
+         echo '<div class="green">' . __('Inheritance of the parent entity') . '</div>';
+      } else {
+         echo '<input type="text" name="extra_css_uri" value="' . $value . '" />';
+      }
+      echo "</td></tr>";
+
       if ($canedit) {
          echo "<tr>";
          echo "<td class='tab_bg_2 center' colspan='4'>";
@@ -269,10 +347,12 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
          // Value is defined : use it
          if ($entityConfig->getFromDB($entities_id)) {
             if (is_numeric($default_value)
+                  && isset($entityConfig->fields[$fieldref])
                   && ($entityConfig->fields[$fieldref] != self::CONFIG_PARENT)) {
                return $entityConfig->fields[$fieldref];
             }
             if (!is_numeric($default_value)
+                  && isset($entityConfig->fields[$fieldref])
                   && ($entityConfig->fields[$fieldref] != self::CONFIG_PARENT_STRING)) {
                return $entityConfig->fields[$fieldref];
             }
@@ -315,6 +395,19 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       $_SESSION['plugin_formcreator']['external_links_icon'] = self::getUsedConfig('external_links_icon',
          $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
       $_SESSION['plugin_formcreator']['external_links_title'] = self::getUsedConfig('external_links_title',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
+
+      $_SESSION['plugin_formcreator']['use_favorites'] = self::getUsedConfig('use_favorites',
+         $_SESSION['glpiactive_entity']);
+
+      $_SESSION['plugin_formcreator']['use_search_engine'] = self::getUsedConfig('use_search_engine',
+         $_SESSION['glpiactive_entity']);
+
+      $_SESSION['plugin_formcreator']['header_title'] = self::getUsedConfig('header_title',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
+      $_SESSION['plugin_formcreator']['page_title'] = self::getUsedConfig('page_title',
+         $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
+      $_SESSION['plugin_formcreator']['extra_css_uri'] = self::getUsedConfig('extra_css_uri',
          $_SESSION['glpiactive_entity'], self::CONFIG_PARENT_STRING);
    }
 }

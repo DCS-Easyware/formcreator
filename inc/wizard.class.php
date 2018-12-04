@@ -54,6 +54,9 @@ class PluginFormcreatorWizard {
       }
       $HEADER_LOADED = true;
 
+      if ($_SESSION['plugin_formcreator']['page_title']) {
+         $title = $_SESSION['plugin_formcreator']['page_title'];
+      }
       Html::includeHeader($title);
 
       $body_class = "layout_".$_SESSION['glpilayout'];
@@ -83,6 +86,11 @@ class PluginFormcreatorWizard {
       // menu toggle (desktop mode)
       echo "<input type='checkbox' id='formcreator-toggle-nav-desktop'>";
       echo "<label for='formcreator-toggle-nav-desktop' class='formcreator-nav-button'></label>";
+
+      // application title
+      if ($_SESSION['plugin_formcreator']['header_title']) {
+         echo "<label for='formcreator-toggle-nav-desktop' class='formcreator-nav-text'>" . $_SESSION['plugin_formcreator']['header_title'] . "</label>";
+      }
 
       if ($_SESSION['plugin_formcreator']['tickets_summary']) {
          self::showTicketSummary();
@@ -131,94 +139,99 @@ class PluginFormcreatorWizard {
          echo '</a></li>';
       }
 
-      $query = "SELECT `glpi_savedsearches`.*,
-                       `glpi_savedsearches_users`.`id` AS IS_DEFAULT
-                FROM `glpi_savedsearches`
-                LEFT JOIN `glpi_savedsearches_users`
-                  ON (`glpi_savedsearches`.`itemtype` = `glpi_savedsearches_users`.`itemtype`
-                      AND `glpi_savedsearches`.`id` = `glpi_savedsearches_users`.`savedsearches_id`
-                      AND `glpi_savedsearches_users`.`users_id` = '".Session::getLoginUserID()."')
-                WHERE `glpi_savedsearches`.`is_private`='1'
-                  AND `glpi_savedsearches`.`users_id`='".Session::getLoginUserID()."'
-                  OR `glpi_savedsearches`.`is_private`='0' ".
-                     getEntitiesRestrictRequest("AND", "glpi_savedsearches", "", "", true);
+      if ($_SESSION['plugin_formcreator']['use_favorites']) {
+            echo '<a href="' . $CFG_GLPI["root_doc"] . '/front/preference.php">';
+         $query = "SELECT `glpi_savedsearches`.*,
+                          `glpi_savedsearches_users`.`id` AS IS_DEFAULT
+                   FROM `glpi_savedsearches`
+                   LEFT JOIN `glpi_savedsearches_users`
+                     ON (`glpi_savedsearches`.`itemtype` = `glpi_savedsearches_users`.`itemtype`
+                         AND `glpi_savedsearches`.`id` = `glpi_savedsearches_users`.`savedsearches_id`
+                         AND `glpi_savedsearches_users`.`users_id` = '".Session::getLoginUserID()."')
+                   WHERE `glpi_savedsearches`.`is_private`='1'
+                     AND `glpi_savedsearches`.`users_id`='".Session::getLoginUserID()."'
+                     OR `glpi_savedsearches`.`is_private`='0' ".
+                        getEntitiesRestrictRequest("AND", "glpi_savedsearches", "", "", true);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            Ajax::createSlidePanel(
-                  'showSavedSearches',
-                  [
-                     'title'     => __('Saved searches'),
-                     'url'       => $CFG_GLPI['root_doc'] . '/ajax/savedsearch.php?action=show',
-                     'icon'      => '/pics/menu_config.png',
-                     'icon_url'  => SavedSearch::getSearchURL(),
-                     'icon_txt'  => __('Manage saved searches')
-                  ]
-                  );
-            echo '<li class="' . ($activeMenuItem == self::MENU_BOOKMARKS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
-            Ajax::createIframeModalWindow('loadbookmark',
-                  $CFG_GLPI["root_doc"]."/front/savedsearch.php?action=load",
-                  ['title'         => __('Saved searches'),
-                   'reloadonclose' => true]);
-            echo '<a href="#" id="showSavedSearchesLink">';
-            echo '<span class="fa fa-star fc_list_icon" title="'.__('Saved searches').'"></span>';
-            echo '<span class="label">'.__('Saved searches').'</span>';
-            echo '</a>';
-            echo '</li>';
+         if ($result = $DB->query($query)) {
+            if ($DB->numrows($result)) {
+               Ajax::createSlidePanel(
+                     'showSavedSearches',
+                     [
+                        'title'     => __('Saved searches'),
+                        'url'       => $CFG_GLPI['root_doc'] . '/ajax/savedsearch.php?action=show',
+                        'icon'      => '/pics/menu_config.png',
+                        'icon_url'  => SavedSearch::getSearchURL(),
+                        'icon_txt'  => __('Manage saved searches')
+                     ]
+                     );
+               echo '<li class="' . ($activeMenuItem == self::MENU_BOOKMARKS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
+               Ajax::createIframeModalWindow('loadbookmark',
+                     $CFG_GLPI["root_doc"]."/front/savedsearch.php?action=load",
+                     ['title'         => __('Saved searches'),
+                      'reloadonclose' => true]);
+               echo '<a href="#" id="showSavedSearchesLink">';
+               echo '<span class="fa fa-star fc_list_icon" title="'.__('Saved searches').'"></span>';
+               echo '<span class="label">'.__('Saved searches').'</span>';
+               echo '</a>';
+               echo '</li>';
+            }
          }
       }
 
-      $link = new Link;
-      $ar_links = $link->find("name LIKE '". $_SESSION['plugin_formcreator']['external_links_prefix'] ."%'");
-      foreach ($ar_links as $id => $a_link) {
-         /*
-          * The link name is filtered and trimmed to remove the 'Helpdesk' string and extra whitespaces:
-          * Helpdesk 1 - the first link
-          * will display: the first link.
-          */
-         $label = PluginFormcreatorCommon::cleanPattern(
-            $_SESSION['plugin_formcreator']['external_links_prefix'], $a_link['name']);
+      if ($_SESSION['plugin_formcreator']['external_links_prefix']) {
+         $link = new Link;
+         $ar_links = $link->find("name LIKE '". $_SESSION['plugin_formcreator']['external_links_prefix'] ."%'");
+         foreach ($ar_links as $id => $a_link) {
+            /*
+             * The link name is filtered and trimmed to remove the 'Helpdesk' string and extra whitespaces:
+             * Helpdesk 1 - the first link
+             * will display: the first link.
+             */
+            $label = PluginFormcreatorCommon::cleanPattern(
+               $_SESSION['plugin_formcreator']['external_links_prefix'], $a_link['name']);
 
-         /*
-          * If the link data field contains a line starting with Icon:, this line is used as a class icon
-          * for the link. As an example, this line:
-          * Icon: fa fa-dashboard
-          * will use the font awesome fa-dashboard icon for the current link.
-          * As default, the fa-globe icon is used.
-          */
-         preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_icon'] ."(.*)$/m", $a_link['data'], $found);
-         $icon = "fa fa-globe";
-         if ((count($found) > 0) and (count($found[0]) > 0)) {
-            $icon = PluginFormcreatorCommon::cleanPattern(
-               $_SESSION['plugin_formcreator']['external_links_icon'], $found[0][0]);
-         }
+            /*
+             * If the link data field contains a line starting with Icon:, this line is used as a class icon
+             * for the link. As an example, this line:
+             * Icon: fa fa-dashboard
+             * will use the font awesome fa-dashboard icon for the current link.
+             * As default, the fa-globe icon is used.
+             */
+            preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_icon'] ."(.*)$/m", $a_link['data'], $found);
+            $icon = "fa fa-globe";
+            if ((count($found) > 0) and (count($found[0]) > 0)) {
+               $icon = PluginFormcreatorCommon::cleanPattern(
+                  $_SESSION['plugin_formcreator']['external_links_icon'], $found[0][0]);
+            }
 
-         /*
-          * If the link data field contains a line starting with Title:, this line is used to find the title used
-          * for the link. As an example, this line:
-          * Title: this is my title
-          * will define a new title for the current link.
-          * As default, the link name is used.
-          */
-         preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_title'] ."(.*)$/m", $a_link['data'], $found);
-         $title = $a_link['name'];
-         if ((count($found) > 0) and (count($found[0]) > 0)) {
-            $title = PluginFormcreatorCommon::cleanPattern(
-               $_SESSION['plugin_formcreator']['external_links_title'], $found[0][0]);
+            /*
+             * If the link data field contains a line starting with Title:, this line is used to find the title used
+             * for the link. As an example, this line:
+             * Title: this is my title
+             * will define a new title for the current link.
+             * As default, the link name is used.
+             */
+            preg_match_all("/^". $_SESSION['plugin_formcreator']['external_links_title'] ."(.*)$/m", $a_link['data'], $found);
+            $title = $a_link['name'];
+            if ((count($found) > 0) and (count($found[0]) > 0)) {
+               $title = PluginFormcreatorCommon::cleanPattern(
+                  $_SESSION['plugin_formcreator']['external_links_title'], $found[0][0]);
+            }
+            /*
+             * If the external link uses a new window...
+             */
+            $target = "";
+            if ($a_link['open_window'] == "1") {
+               $target = 'target="_blank"';
+            }
+            echo '<li class="' . ($activeMenuItem == self::MENU_LINKS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
+            echo '<a href="' . $a_link['link'] . '" '. $target .'>';
+            echo '<span class="'. $icon .' fc_list_icon" title="' . $title . '"></span>';
+            echo '<span class="label">'. $label .'</span>';
+            echo '</a>';
+            echo '</li>';
          }
-         /*
-          * If the external link uses a new window...
-          */
-         $target = "";
-         if ($a_link['open_window'] == "1") {
-            $target = 'target="_blank"';
-         }
-         echo '<li class="' . ($activeMenuItem == self::MENU_LINKS ? 'plugin_formcreator_selectedMenuItem' : '') . '">';
-         echo '<a href="' . $a_link['link'] . '" '. $target .'>';
-         echo '<span class="'. $icon .' fc_list_icon" title="' . $title . '"></span>';
-         echo '<span class="label">'. $label .'</span>';
-         echo '</a>';
-         echo '</li>';
       }
 
       if (isset($CFG_GLPI["helpdesk_doc_url"]) && !empty($CFG_GLPI["helpdesk_doc_url"])) {

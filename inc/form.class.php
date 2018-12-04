@@ -633,9 +633,11 @@ class PluginFormcreatorForm extends CommonDBTM
          echo "</div>";
       }
 
-      echo '<div id="plugin_formcreator_searchBar">';
-      $this->showSearchBar();
-      echo '</div>';
+      if ($_SESSION['plugin_formcreator']['use_search_engine']) {
+          echo '<div id="plugin_formcreator_searchBar">';
+          $this->showSearchBar();
+          echo '</div>';
+      }
       echo '<div class="plugin_formcreator_sort">';
       echo '<span class="formcreator_radios">';
       echo '<input type="radio" class="form-control" id="plugin_formcreator_mostPopular" name="sort" value="mostPopularSort" />';
