@@ -126,7 +126,6 @@ function plugin_init_formcreator() {
    $extraCss = plugin_formcreator_loadCss();
    if (! empty($extraCss)) {
       $PLUGIN_HOOKS['add_css']['formcreator'][] = $extraCss;
-      Toolbox::logInFile('pfc', $extraCss);
    }
 
    // Hack for vertical display
