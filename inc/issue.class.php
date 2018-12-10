@@ -861,6 +861,12 @@ $data['sql']['search'] = $sql;
                         document.forms['searchform".$data["itemtype"]."'].submit();\"></span></label></div></div>";
       }
 
+      // Modification to prevent meta, so have column title like: Tickets - ID
+      foreach ($data['data']['cols'] as $idx=>$vals) {
+         if ($vals['itemtype'] == 'Ticket') {
+            $data['data']['cols'][$idx]['itemtype'] = 'PluginFormcreatorIssue';
+         }
+      }
       Search::displayData($data);
 
       if ($params['as_map'] == 1
