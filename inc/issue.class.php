@@ -920,7 +920,7 @@ $data['sql']['search'] = $sql;
 
             echo "<div class='center'><p>".__('Search results for localized items only')."</p>";
             $js = "$(function() {
-                  var map = initMap($('#page'), 'map', 'full');
+                  var map = initMap($('#page'), 'map', '600px');
                   _loadMap(map, '$itemtype');
                });
 
