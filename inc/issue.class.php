@@ -307,7 +307,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
          }
          $group = [];
          $tablist = [];
-         $searchid_required = [2, 83];
+         $searchid_required = [2, 83, 12];
          // case for after map search
          if (isset($_GET['criteria'])) {
             foreach ($_GET['criteria'] as $criteria) {
