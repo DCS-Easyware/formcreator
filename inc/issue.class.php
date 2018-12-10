@@ -380,9 +380,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
       $search = ['criteria' => [0 => ['field'      => 12,
                                       'searchtype' => 'equals',
-                                      'value'      => 'notclosed']],
-                 'sort'     => 2,
-                 'order'    => 'DESC'];
+                                      'value'      => 'notclosed']]];
 
       if (Session::haveRight(self::$rightname, Ticket::READALL)) {
          $search['criteria'][0]['value'] = 'notold';
@@ -628,6 +626,10 @@ class PluginFormcreatorIssue extends CommonDBTM {
       switch($type) {
 
          case 'myrequest':
+            if (!isset($_GET['sort'])) {
+               $params['sort'] = $configs['myrequest_sort'];
+               $params['order'] = $configs['myrequest_sortorder'];
+            }
             foreach ($params['criteria'] as $index=>$row) {
                if (isset($row['field'])
                      && $row['field'] == 4) {
@@ -654,6 +656,10 @@ class PluginFormcreatorIssue extends CommonDBTM {
             break;
 
          case 'allrequest':
+            if (!isset($_GET['sort'])) {
+               $params['sort'] = $configs['allrequest_sort'];
+               $params['order'] = $configs['allrequest_sortorder'];
+            }
             if (!$configs['is_allrequest_searchengine']) {
                echo '<div style="display: none;">';
             }
@@ -678,6 +684,10 @@ class PluginFormcreatorIssue extends CommonDBTM {
             }
             if (isset($_GET['groups_id'])
                   && is_numeric($_GET['groups_id'])) {
+               if (!isset($_GET['sort'])) {
+                  $params['sort'] = $configs['grouprequest_'.$_GET['groups_id'].'_sort'];
+                  $params['order'] = $configs['grouprequest_'.$_GET['groups_id'].'_sortorder'];
+               }
                if (!$configs['is_grouprequest_'.$_GET['groups_id'].'_searchengine']) {
                   echo '<div style="display: none;">';
                }
@@ -785,7 +795,6 @@ class PluginFormcreatorIssue extends CommonDBTM {
             $data['tocompute'][] = $searchid;
          }
       }
-      $data['search']['sort'] = 2;
       $data['itemtype'] = 'Ticket';
       $data['item'] = new Ticket();
       Search::constructSQL($data);

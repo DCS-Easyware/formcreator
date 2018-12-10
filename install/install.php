@@ -61,6 +61,8 @@ class PluginFormcreatorInstall {
                'is_myrequest_searchengine' => true,
                'is_myrequest_map'          => true,
                'myrequest_type'            => 'form',
+               'myrequest_sort'            => 2,
+               'myrequest_sortorder'       => 'DESC',
                'myrequest_searchfields'    => exportArrayToDB([]),
                'myrequest_columns'         => exportArrayToDB([]),
 
@@ -68,6 +70,8 @@ class PluginFormcreatorInstall {
                'is_allrequest_searchengine'=> true,
                'is_allrequest_map'         => true,
                'allrequest_type'           => 'form',
+               'allrequest_sort'           => 2,
+               'allrequest_sortorder'      => 'DESC',
                'allrequest_searchfields'   => exportArrayToDB([]),
                'allrequest_columns'        => exportArrayToDB([])
             ]);
@@ -111,6 +115,10 @@ class PluginFormcreatorInstall {
          case '2.6.5-dcs-1.0':
             require_once(__DIR__ . '/update_2.6.5-dcs-1.0_2.6.5-dcs-2.0.php');
             plugin_formcreator_update_2_6_5_dcs_2_0($this->migration);
+
+         case '2.6.5-dcs-2.0':
+            require_once(__DIR__ . '/update_2.6.5-dcs-2.0_2.6.5-dcs-2.1.php');
+            plugin_formcreator_update_2_6_5_dcs_2_1($this->migration);
 
          default:
             // Must be the last case
