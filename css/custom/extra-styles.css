@@ -170,3 +170,27 @@
    top: 25px;
    z-index: 15;
 }
+
+/*
+ * Skin the News plugin alerts on the home page
+ */
+div.plugin_news_alert-container{
+   margin-bottom: 20px;
+}
+div.plugin_news_alert {
+   margin-left: 0;
+   background-color: rgba(255, 182, 18, 1.0);
+}
+div.plugin_news_alert-title {
+   color: white;
+   background-color: rgba(255, 182, 18, 1.0);
+}
+div.plugin_news_alert-content {
+   padding: 20px;
+   background-color: rgba(255, 182, 18, 1.0);
+}
+div.plugin_news_alert-content p {
+   background-color: white;
+   padding: 3px;
+   margin: 0;
+}
