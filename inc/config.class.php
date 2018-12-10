@@ -79,9 +79,6 @@ class PluginFormcreatorConfig extends Config {
       echo "<td colspan='2'><td>";
       echo "</tr>";
 
-      echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Fields to search')."</td>";
-      echo "<td colspan='3'>";
       $ticket = new Ticket();
       $searches = $ticket->rawSearchOptions();
       $elements = [];
@@ -93,6 +90,25 @@ class PluginFormcreatorConfig extends Config {
             $prefix = $search['name'].' > ';
          }
       }
+      $elements_sortorder = [
+         'ASC'  => __('ascending', 'formcreator'),
+         'DESC' => __('descending', 'formcreator')
+      ];
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Default sort', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray('myrequest_sort', $elements, ['value' => $configs['myrequest_sort']]);
+      echo "</td>";
+      echo "<td>". __('Default order', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray("myrequest_sortorder", $elements_sortorder, ['value' => $configs['myrequest_sortorder']]);
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Fields to search')."</td>";
+      echo "<td colspan='3'>";
       Dropdown::showFromArray('myrequest_searchfields', $elements, ['values'   => importArrayFromDB($configs['myrequest_searchfields']),
                                                                     'multiple' => true]);
       echo "</td>";
@@ -133,19 +149,19 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Default sort', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray('allrequest_sort', $elements, ['value' => $configs['allrequest_sort']]);
+      echo "</td>";
+      echo "<td>". __('Default order', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray("allrequest_sortorder", $elements_sortorder, ['value' => $configs['allrequest_sortorder']]);
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_2'>";
       echo "<td>". __('Fields to search')."</td>";
       echo "<td colspan='3'>";
-      $ticket = new Ticket();
-      $searches = $ticket->rawSearchOptions();
-      $elements = [];
-      $prefix = '';
-      foreach ($searches as $search) {
-         if (is_numeric($search['id'])) {
-            $elements[$search['id']] = $prefix.$search['name'];
-         } else {
-            $prefix = $search['name'].' > ';
-         }
-      }
       Dropdown::showFromArray('allrequest_searchfields', $elements, ['values'   => importArrayFromDB($configs['allrequest_searchfields']),
                                                                     'multiple' => true]);
       echo "</td>";
@@ -251,9 +267,6 @@ class PluginFormcreatorConfig extends Config {
       echo "<td>";
       echo "</tr>";
 
-      echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Fields to search')."</td>";
-      echo "<td colspan='3'>";
       $ticket = new Ticket();
       $searches = $ticket->rawSearchOptions();
       $elements = [];
@@ -265,6 +278,25 @@ class PluginFormcreatorConfig extends Config {
             $prefix = $search['name'].' > ';
          }
       }
+      $elements_sortorder = [
+         'ASC'  => __('ascending', 'formcreator'),
+         'DESC' => __('descending', 'formcreator')
+      ];
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Default sort', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray('grouprequest_'.$groups_id.'_sort', $elements, ['value' => $configs['grouprequest_'.$groups_id.'_sort']]);
+      echo "</td>";
+      echo "<td>". __('Default order', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showFromArray("grouprequest_'.$groups_id.'_sortorder", $elements_sortorder, ['value' => $configs['grouprequest_'.$groups_id.'_sortorder']]);
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Fields to search')."</td>";
+      echo "<td colspan='3'>";
       Dropdown::showFromArray('grouprequest_'.$groups_id.'_searchfields', $elements, ['values'   => importArrayFromDB($configs['grouprequest_'.$groups_id.'_searchfields']),
                                                                     'multiple' => true]);
       echo "</td>";
@@ -312,7 +344,9 @@ class PluginFormcreatorConfig extends Config {
             'is_grouprequest_'.$input['groups_id'].'_enabled'       => 0,
             'is_grouprequest_'.$input['groups_id'].'_searchengine'  => $configs['is_myrequest_searchengine'],
             'is_grouprequest_'.$input['groups_id'].'_map'           => $configs['is_myrequest_map'],
-            'grouprequest_'.$input['groups_id'].'_type'                => 'form',
+            'grouprequest_'.$input['groups_id'].'_type'             => 'form',
+            'grouprequest_'.$input['groups_id'].'_sort'             => $configs['myrequest_sort'],
+            'grouprequest_'.$input['groups_id'].'_sortorder'        => $configs['myrequest_sortorder'],
             'grouprequest_'.$input['groups_id'].'_searchfields'     => importArrayFromDB($configs['myrequest_searchfields']),
             'grouprequest_'.$input['groups_id'].'_columns'          => importArrayFromDB($configs['myrequest_columns']),
          ];
