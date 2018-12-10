@@ -789,6 +789,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
       }
       $data['search']['sort'] = 2;
       $data['itemtype'] = 'Ticket';
+      $data['item'] = new Ticket();
       Search::constructSQL($data);
 
 /* for restrict type (type = form)
