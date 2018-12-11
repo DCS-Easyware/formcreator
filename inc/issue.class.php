@@ -381,7 +381,11 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
       $search = ['criteria' => [0 => ['field'      => 12,
                                       'searchtype' => 'equals',
-                                      'value'      => 'notclosed']]];
+                                      'value'      => 'notclosed'],
+                                1 => ['link'       => 'AND',
+                                      'field'      => 80,
+                                      'searchtype' => 'under',
+                                      'value'      => 0]]];
 
       if (Session::haveRight(self::$rightname, Ticket::READALL)) {
          $search['criteria'][0]['value'] = 'notold';
