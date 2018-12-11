@@ -66,6 +66,10 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
+      echo "<td>". __('Display ticket detail', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showYesNo("is_myrequest_issuedetail", $configs['is_myrequest_issuedetail']);
+      echo "</td>";
       echo "<td>";
       // echo __('Type of tickets to display');
       echo "</td>";
@@ -76,7 +80,6 @@ class PluginFormcreatorConfig extends Config {
       ];
       // Dropdown::showFromArray('myrequest_type', $elements_types, ['value' => $configs['myrequest_type']]);
       echo "</td>";
-      echo "<td colspan='2'><td>";
       echo "</tr>";
 
       $ticket = new Ticket();
@@ -140,12 +143,20 @@ class PluginFormcreatorConfig extends Config {
       echo "<td>";
       Dropdown::showYesNo("is_allrequest_map", $configs['is_allrequest_map']);
       echo "</td>";
+      echo "<td>". __('Display ticket detail', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showYesNo("is_allrequest_issuedetail", $configs['is_allrequest_issuedetail']);
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_2'>";
       echo "<td>";
       // echo __('Type of tickets to display');
       echo "</td>";
       echo "<td>";
       // Dropdown::showFromArray('allrequest_type', $elements_types, ['value' => $configs['allrequest_type']]);
       echo "<td>";
+      echo "<td colspan='2'></td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
@@ -255,6 +266,14 @@ class PluginFormcreatorConfig extends Config {
       echo "<td>";
       Dropdown::showYesNo("is_grouprequest_".$groups_id."_map", $configs['is_grouprequest_'.$groups_id.'_map']);
       echo "</td>";
+      echo "<td>". __('Display ticket detail', 'formcreator')."</td>";
+      echo "<td>";
+      Dropdown::showYesNo("is_grouprequest_".$groups_id."_issuedetail", $configs['is_grouprequest_'.$groups_id.'_issuedetail']);
+      echo "</td>";
+      echo "<td>";
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_2'>";
       echo "<td>";
       // echo __('Type of tickets to display');
       echo "</td>";
@@ -265,6 +284,7 @@ class PluginFormcreatorConfig extends Config {
       ];
       // Dropdown::showFromArray('grouprequest_'.$groups_id.'_type', $elements_types, ['value' => $configs['grouprequest_'.$groups_id.'_type']]);
       echo "<td>";
+      echo "<td colspan='2'></td>";
       echo "</tr>";
 
       $ticket = new Ticket();
@@ -344,6 +364,7 @@ class PluginFormcreatorConfig extends Config {
             'is_grouprequest_'.$input['groups_id'].'_enabled'       => 0,
             'is_grouprequest_'.$input['groups_id'].'_searchengine'  => $configs['is_myrequest_searchengine'],
             'is_grouprequest_'.$input['groups_id'].'_map'           => $configs['is_myrequest_map'],
+            'is_grouprequest_'.$input['groups_id'].'_issuedetail'   => true,
             'grouprequest_'.$input['groups_id'].'_type'             => 'form',
             'grouprequest_'.$input['groups_id'].'_sort'             => $configs['myrequest_sort'],
             'grouprequest_'.$input['groups_id'].'_sortorder'        => $configs['myrequest_sortorder'],
