@@ -622,6 +622,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
       $searchfields = [];
       $columns = [];
+      $issuedetail = false;
 
       switch($type) {
 
@@ -650,6 +651,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
             $searchfields = importArrayFromDB($configs['myrequest_searchfields']);
             $columns = importArrayFromDB($configs['myrequest_columns']);
+            $issuedetail = $configs['is_myrequest_issuedetail'];
             if (!in_array(4, $columns)) {
                $columns[] = 4;
             }
@@ -673,6 +675,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
             $searchfields = importArrayFromDB($configs['allrequest_searchfields']);
             $columns = importArrayFromDB($configs['allrequest_columns']);
+            $issuedetail = $configs['is_allrequest_issuedetail'];
             break;
 
          case 'group':
@@ -702,6 +705,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
                $searchfields = importArrayFromDB($configs['grouprequest_'.$_GET['groups_id'].'_searchfields']);
                $columns = importArrayFromDB($configs['grouprequest_'.$_GET['groups_id'].'_columns']);
+               $issuedetail = $configs['is_grouprequest_'.$_GET['groups_id'].'_issuedetail'];
                if (!in_array(71, $columns)) {
                   $columns[] = 71;
                }
@@ -875,6 +879,22 @@ $data['sql']['search'] = $sql;
       foreach ($data['data']['cols'] as $idx=>$vals) {
          if ($vals['itemtype'] == 'Ticket') {
             $data['data']['cols'][$idx]['itemtype'] = 'PluginFormcreatorIssue';
+         }
+      }
+
+      // remove the issue/ticket link in the name column
+      if (!$issuedetail) {
+         foreach ($data['data']['rows'] as $idx=>$row) {
+            foreach ($row as $idx2=>$cell) {
+               if (is_array($cell)
+                     && isset($cell[0])
+                     && isset($cell[0]['name'])
+                     && isset($cell[0]['id'])
+                     && isset($cell[0]['content'])
+                     && isset($cell[0]['status'])) {
+                  $data['data']['rows'][$idx][$idx2]['displayname'] = $cell[0]['name'];
+               }
+            }
          }
       }
       Search::displayData($data);

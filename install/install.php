@@ -60,6 +60,7 @@ class PluginFormcreatorInstall {
 
                'is_myrequest_searchengine' => true,
                'is_myrequest_map'          => true,
+               'is_myrequest_issuedetail'  => true,
                'myrequest_type'            => 'form',
                'myrequest_sort'            => 2,
                'myrequest_sortorder'       => 'DESC',
@@ -69,6 +70,7 @@ class PluginFormcreatorInstall {
                'is_allrequest_enabled'     => true,
                'is_allrequest_searchengine'=> true,
                'is_allrequest_map'         => true,
+               'is_allrequest_issuedetail' => true,
                'allrequest_type'           => 'form',
                'allrequest_sort'           => 2,
                'allrequest_sortorder'      => 'DESC',
