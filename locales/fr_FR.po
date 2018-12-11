@@ -1121,3 +1121,7 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette section ?"
 #: js/scripts.js.php:513
 msgid "Are you sure you want to delete this destination:"
 msgstr "Êtes-vous sûr de vouloir supprimer la destination suivante :"
+
+#: inc/wizard.class.php:131 inc/wizard.class.php:132 inc/config.class.php:128
+msgid "All requests for assistance"
+msgstr "Les demandes d'assistance"
