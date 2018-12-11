@@ -52,14 +52,14 @@ class PluginFormcreatorConfig extends Config {
 
       echo "<div class='center' id='tabsbody'>";
       echo "<table class='tab_cadre_fixe'>";
-      echo "<tr><th colspan='4'>" . __('My requests for assistance') . "</th></tr>";
+      echo "<tr><th colspan='4'>" . __('My requests for assistance', 'formcreator') . "</th></tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Display search engine')."</td>";
+      echo "<td>". __('Display search engine', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_myrequest_searchengine", $configs['is_myrequest_searchengine']);
       echo "</td>";
-      echo "<td>". __('Display the map')."</td>";
+      echo "<td>". __('Display the map', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_myrequest_map", $configs['is_myrequest_map']);
       echo "</td>";
@@ -110,7 +110,7 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Fields to search')."</td>";
+      echo "<td>". __('Fields to search', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('myrequest_searchfields', $elements, ['values'   => importArrayFromDB($configs['myrequest_searchfields']),
                                                                     'multiple' => true]);
@@ -118,28 +118,28 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Columns to display per default')."</td>";
+      echo "<td>". __('Columns to display per default', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('myrequest_columns', $elements, ['values'   => importArrayFromDB($configs['myrequest_columns']),
                                                                'multiple' => true]);
       echo "</td>";
       echo "</tr>";
 
-      echo "<tr><th colspan='4'>" . __('All requests for assistance') . "</th></tr>";
+      echo "<tr><th colspan='4'>" . __('All requests for assistance', 'formcreator') . "</th></tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Display this menu')."</td>";
+      echo "<td>". __('Display this menu', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_allrequest_enabled", $configs['is_allrequest_enabled']);
       echo "</td>";
-      echo "<td>". __('Display search engine')."</td>";
+      echo "<td>". __('Display search engine', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_allrequest_searchengine", $configs['is_allrequest_searchengine']);
       echo "</td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Display the map')."</td>";
+      echo "<td>". __('Display the map', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_allrequest_map", $configs['is_allrequest_map']);
       echo "</td>";
@@ -171,7 +171,7 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Fields to search')."</td>";
+      echo "<td>". __('Fields to search', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('allrequest_searchfields', $elements, ['values'   => importArrayFromDB($configs['allrequest_searchfields']),
                                                                     'multiple' => true]);
@@ -179,7 +179,7 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Columns to display per default')."</td>";
+      echo "<td>". __('Columns to display per default', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('allrequest_columns', $elements, ['values'   => importArrayFromDB($configs['allrequest_columns']),
                                                                'multiple' => true]);
@@ -251,18 +251,18 @@ class PluginFormcreatorConfig extends Config {
       echo "<tr><th colspan='4'>" . __('Group') . ": ". $group->fields['completename'] ."</th></tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Display this menu')."</td>";
+      echo "<td>". __('Display this menu', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_grouprequest_".$groups_id."_enabled", $configs['is_grouprequest_'.$groups_id.'_enabled']);
       echo "</td>";
-      echo "<td>". __('Display search engine')."</td>";
+      echo "<td>". __('Display search engine', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_grouprequest_".$groups_id."_searchengine", $configs['is_grouprequest_'.$groups_id.'_searchengine']);
       echo "</td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Display the map')."</td>";
+      echo "<td>". __('Display the map', 'formcreator')."</td>";
       echo "<td>";
       Dropdown::showYesNo("is_grouprequest_".$groups_id."_map", $configs['is_grouprequest_'.$groups_id.'_map']);
       echo "</td>";
@@ -315,7 +315,7 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Fields to search')."</td>";
+      echo "<td>". __('Fields to search', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('grouprequest_'.$groups_id.'_searchfields', $elements, ['values'   => importArrayFromDB($configs['grouprequest_'.$groups_id.'_searchfields']),
                                                                     'multiple' => true]);
@@ -323,7 +323,7 @@ class PluginFormcreatorConfig extends Config {
       echo "</tr>";
 
       echo "<tr class='tab_bg_2'>";
-      echo "<td>". __('Columns to display per default')."</td>";
+      echo "<td>". __('Columns to display per default', 'formcreator')."</td>";
       echo "<td colspan='3'>";
       Dropdown::showFromArray('grouprequest_'.$groups_id.'_columns', $elements, ['values'   => importArrayFromDB($configs['grouprequest_'.$groups_id.'_columns']),
                                                                'multiple' => true]);
