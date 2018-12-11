@@ -103,6 +103,13 @@ function plugin_formcreator_check_config($verbose = false) {
 function plugin_init_formcreator() {
    global $PLUGIN_HOOKS, $CFG_GLPI;
 
+   // PHP Notice: Undefined index: comment in /var/www/html/glpi/plugins/formcreator/inc/targetticket.class.php at line 119
+   // PHP Notice: Undefined index: comment in /var/www/html/glpi/plugins/formcreator/inc/targetticket.class.php at line 119
+
+   /*
+    * PHP Warning: Declaration of PluginFormcreatorHostnameField::isValid() should be compatible with PluginFormcreatorField::isValid($value) in /var/www/html/glpi/plugins/formcreator/inc/fields/hostnamefield.class.php at line 0
+---
+    */
    // Add specific CSS
    $PLUGIN_HOOKS['add_css']['formcreator'][] = "css/styles.css";
 
