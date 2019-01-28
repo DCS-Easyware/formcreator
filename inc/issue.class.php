@@ -621,7 +621,7 @@ class PluginFormcreatorIssue extends CommonDBTM {
 
       $configs = Config::getConfigurationValues('formcreator');
       $params = Search::manageParams($itemtype, $_GET);
-      $params['showbookmark'] = false;
+      $params['showbookmark'] = true;
       echo "<div class='search_page'>";
 
       $searchfields = [];
