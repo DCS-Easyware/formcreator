@@ -43,32 +43,31 @@ $form = new PluginFormcreatorForm();
 
 if (isset($_POST["add"])) {
    // Add a new Form
-   Session::checkRight("entity", UPDATE);
+   $form->check(-1, CREATE, $_POST);
    $newID = $form->add($_POST);
-
    Html::redirect($CFG_GLPI["root_doc"] . '/plugins/formcreator/front/form.form.php?id=' . $newID);
 
 } else if (isset($_POST["update"])) {
    // Edit an existing form
-   Session::checkRight("entity", UPDATE);
+   $form->check($_POST['id'], UPDATE);
    $form->update($_POST);
    Html::back();
 
 } else if (isset($_POST["delete"])) {
    // Delete a form (is_deleted = true)
-   Session::checkRight("entity", UPDATE);
+   $form->check($_POST['id'], DELETE);
    $form->delete($_POST);
    $form->redirectToList();
 
 } else if (isset($_POST["restore"])) {
    // Restore a deleteted form (is_deleted = false)
-   Session::checkRight("entity", UPDATE);
+   $form->check($_POST['id'], DELETE);
    $form->restore($_POST);
    $form->redirectToList();
 
 } else if (isset($_POST["purge"])) {
    // Delete defenitively a form from DB and all its datas
-   Session::checkRight("entity", UPDATE);
+   $form->check($_POST['id'], PURGE);
    $form->delete($_POST, 1);
    $form->redirectToList();
 
@@ -90,7 +89,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_GET["import_form"])) {
    // Import form
-   Session::checkRight("entity", UPDATE);
+   $form->check(-1, CREATE, $_POST);
    Html::header(
       PluginFormcreatorForm::getTypeName(2),
       $_SERVER['PHP_SELF'],
@@ -106,7 +105,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["import_send"])) {
    // Import form
-   Session::checkRight("entity", UPDATE);
+   $form->check(-1, CREATE, $_POST);
    $form->importJson($_REQUEST);
    Html::back();
 
@@ -144,7 +143,7 @@ if (isset($_POST["add"])) {
 
 } else {
    // Show forms form
-   Session::checkRight("entity", UPDATE);
+   Session::checkRight("plugin_formcreator_form", READ);
 
    Html::header(
       PluginFormcreatorForm::getTypeName(2),

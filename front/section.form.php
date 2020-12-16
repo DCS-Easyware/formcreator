@@ -33,8 +33,6 @@
 
 include ("../../../inc/includes.php");
 
-Session::checkRight("entity", UPDATE);
-
 // Check if plugin is activated...
 $plugin = new Plugin();
 if ($plugin->isActivated("formcreator")) {
@@ -42,25 +40,25 @@ if ($plugin->isActivated("formcreator")) {
 
    if (isset($_POST["add"])) {
       // Add a new Section
-      Session::checkRight("entity", UPDATE);
+      $section->check(-1, CREATE, $_POST);
       $section->add($_POST);
       Html::redirect($CFG_GLPI["root_doc"] . '/plugins/formcreator/front/form.form.php?id=' . $_POST['plugin_formcreator_forms_id']);
 
    } else if (isset($_POST["update"])) {
       // Edit an existing section
-      Session::checkRight("entity", UPDATE);
+      $section->check($_POST['id'], UPDATE);
       $section->update($_POST);
       Html::redirect($CFG_GLPI["root_doc"] . '/plugins/formcreator/front/form.form.php?id=' . $_POST['plugin_formcreator_forms_id']);
 
    } else if (isset($_POST["delete_section"])) {
       // Delete a Section
-      Session::checkRight("entity", UPDATE);
+      $section->check($_POST['id'], PURGE);
       $section->delete($_POST);
       // Page refresh handled by Javascript
 
    } else if (isset($_POST["duplicate_section"])) {
       // Duplicate a Section
-      Session::checkRight("entity", UPDATE);
+      $section->check($_POST['id'], CREATE);
       if ($section->getFromDB((int) $_POST['id'])) {
          $section->duplicate();
       }
@@ -68,7 +66,7 @@ if ($plugin->isActivated("formcreator")) {
 
    } else if (isset($_POST["move"])) {
       // Move a Section
-      Session::checkRight("entity", UPDATE);
+      $section->check($_POST['id'], UPDATE);
 
       if ($section->getFromDB((int) $_POST['id'])) {
          if ($_POST["way"] == 'up') {

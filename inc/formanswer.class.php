@@ -43,23 +43,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
 
    const SOPTION_ANSWER = 900000;
 
-   /**
-    * Check if current user have the right to create and modify requests
-    *
-    * @return boolean True if he can create and modify requests
-    */
-   public static function canCreate() {
-      return true;
-   }
-
-   /**
-    * Check if current user have the right to read requests
-    *
-    * @return boolean True if he can read requests
-    */
-   public static function canView() {
-      return true;
-   }
+   static $rightname = 'plugin_formcreator_form';
 
    public function canViewItem() {
       global $DB;
@@ -68,7 +52,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
          return false;
       }
 
-      if (Session::haveRight('entity', UPDATE)) {
+      if (Session::haveRight('plugin_formcreator_form', UPDATE)) {
          return true;
       }
 
@@ -122,13 +106,6 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
       return false;
    }
 
-   public static function canPurge() {
-      return true;
-   }
-
-   public function canPurgeItem() {
-      return Session::haveRight('entity', UPDATE);
-   }
 
    /**
     * Returns the type name with consideration of plural

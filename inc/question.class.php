@@ -42,23 +42,6 @@ class PluginFormcreatorQuestion extends CommonDBChild implements PluginFormcreat
    /** @var PluginFormcreatorFieldInterface|null $field a field describing the question denpending on its field type  */
    private $field = null;
 
-   /**
-    * Check if current user have the right to create and modify requests
-    *
-    * @return boolean True if he can create and modify requests
-    */
-   public static function canCreate() {
-      return true;
-   }
-
-   /**
-    * Check if current user have the right to read requests
-    *
-    * @return boolean True if he can read requests
-    */
-   public static function canView() {
-      return true;
-   }
 
    /**
     * Returns the type name with consideration of plural

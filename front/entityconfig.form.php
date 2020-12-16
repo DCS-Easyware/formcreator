@@ -33,10 +33,10 @@
 
 include ('../../../inc/includes.php');
 
-Session::checkRight("entity", UPDATE);
 
 if (isset($_POST['update'])) {
    $entityConfig = new PluginFormcreatorEntityconfig();
+   $entityConfig->check($_POST['id'], UPDATE);
    $entityConfig->update($_POST);
 }
 

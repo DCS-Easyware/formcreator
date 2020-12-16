@@ -33,7 +33,7 @@
 
 include ('../../../inc/includes.php');
 
-Session::checkRight("entity", UPDATE);
+Session::checkRight("plugin_formcreator_form", READ);
 
 $section       = new PluginFormcreatorSection();
 if (empty($_REQUEST['section_id'])) {

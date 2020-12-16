@@ -33,8 +33,6 @@
 
 include ("../../../inc/includes.php");
 
-Session::checkRight("entity", UPDATE);
-
 // Check if plugin is activated...
 $plugin = new Plugin();
 if (!$plugin->isActivated('formcreator')) {
@@ -47,7 +45,7 @@ $question = new PluginFormcreatorQuestion();
 unset($_POST['_skip_checks']);
 if (isset($_POST["add"])) {
    // Add a new Question
-   Session::checkRight("entity", UPDATE);
+   $question->check(-1, CREATE, $_POST);
    if ($newid = $question->add($_POST)) {
       Session::addMessageAfterRedirect(__('The question has been successfully saved!', 'formcreator'), true, INFO);
       $_POST['id'] = $newid;
@@ -58,7 +56,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["update"])) {
    // Edit an existing Question
-   Session::checkRight("entity", UPDATE);
+   $question->check($_POST['id'], UPDATE);
    if ($question->update($_POST)) {
       Session::addMessageAfterRedirect(__('The question has been successfully updated!', 'formcreator'), true, INFO);
       $question->updateConditions($_POST);
@@ -68,12 +66,12 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["delete_question"])) {
    // Delete a Question
-   Session::checkRight("entity", UPDATE);
+   $question->check($_POST['id'], PURGE);
    $question->delete($_POST);
 
 } else if (isset($_POST["duplicate_question"])) {
    // Duplicate a Question
-   Session::checkRight("entity", UPDATE);
+   $question->check($_POST['id'], CREATE);
    if ($question->getFromDB((int) $_POST['id'])) {
       $question->duplicate();
    }
@@ -86,7 +84,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["move"])) {
    // Move a Question
-   Session::checkRight("entity", UPDATE);
+   $question->check($_POST['id'], UPDATE);
 
    if ($question->getFromDB((int) $_POST['id'])) {
       if ($_POST['way'] == 'up') {

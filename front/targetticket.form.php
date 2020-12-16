@@ -33,7 +33,7 @@
 
 include ("../../../inc/includes.php");
 
-Session::checkRight("entity", UPDATE);
+Session::checkRight("plugin_formcreator_form", UPDATE);
 
 // Check if plugin is activated...
 $plugin = new Plugin();

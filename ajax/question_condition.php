@@ -32,7 +32,7 @@
  */
 
 include ('../../../inc/includes.php');
-Session::checkRight('entity', UPDATE);
+Session::checkRight("plugin_formcreator_form", READ);
 
 if (!isset($_REQUEST['plugin_formcreator_questions_id'])) {
    exit;

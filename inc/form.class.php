@@ -37,40 +37,13 @@ if (!defined('GLPI_ROOT')) {
 
 class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExportableInterface
 {
-   static $rightname = 'entity';
+   static $rightname = 'plugin_formcreator_form';
 
    public $dohistory         = true;
 
    const ACCESS_PUBLIC       = 0;
    const ACCESS_PRIVATE      = 1;
    const ACCESS_RESTRICTED   = 2;
-
-   /**
-    * Check if current user have the right to create and modify requests
-    *
-    * @return boolean True if he can create and modify requests
-    */
-   public static function canCreate() {
-      return Session::haveRight('entity', UPDATE);
-   }
-
-   /**
-    * Check if current user have the right to read requests
-    *
-    * @return boolean True if he can read requests
-    */
-   public static function canView() {
-      return Session::haveRight('entity', UPDATE);
-   }
-
-   /**
-    * Check if current user have the right to read requests
-    *
-    * @return boolean True if he can read requests
-    */
-   public static function canDelete() {
-      return Session::haveRight('entity', UPDATE);
-   }
 
    public function canPurgeItem() {
       $DbUtil = new DbUtils();
@@ -81,7 +54,7 @@ class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExpor
       if ($DbUtil->countElementsInTable(PluginFormcreatorFormAnswer::getTable(), $criteria) > 0) {
          return false;
       }
-      return Session::haveRight('entity', UPDATE);
+      return Session::haveRight('plugin_formcreator_form', PURGE);
    }
 
    /**
@@ -1216,7 +1189,6 @@ class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExpor
          $_SESSION['formcreator']['data'] = Toolbox::stripslashes_deep($input);
          return false;
       }
-
       $formanswer = new PluginFormcreatorFormAnswer();
       return $formanswer->saveAnswers($this, $input, $fields);
    }

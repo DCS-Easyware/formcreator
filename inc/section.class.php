@@ -40,23 +40,6 @@ class PluginFormcreatorSection extends CommonDBChild implements PluginFormcreato
    static public $itemtype = PluginFormcreatorForm::class;
    static public $items_id = "plugin_formcreator_forms_id";
 
-   /**
-    * Check if current user have the right to create and modify requests
-    *
-    * @return boolean True if he can create and modify requests
-    */
-   public static function canCreate() {
-      return true;
-   }
-
-   /**
-    * Check if current user have the right to read requests
-    *
-    * @return boolean True if he can read requests
-    */
-   public static function canView() {
-      return true;
-   }
 
    /**
     * Returns the type name with consideration of plural
