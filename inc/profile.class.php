@@ -65,7 +65,7 @@ class PluginFormcreatorProfile extends Profile {
 
       // $rights = $this->getRightsGeneral();
       $rights = [
-         ['itemtype'  => 'PluginFusioninventoryUnmanaged',
+         ['itemtype'  => 'PluginFormcreatorForm',
                'label'     => _n('Form', 'Forms', 2, 'formcreator'),
                'field'     => 'plugin_formcreator_form'],
       ];
