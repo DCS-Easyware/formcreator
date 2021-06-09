@@ -62,5 +62,87 @@ $json = [
 if ($field !== null) {
    $field->deserializeValue($question->fields['default_values']);
    $json = $field->getDesignSpecializationField();
+
+   // Limit subset of dropdown  and glpiselect
+   preg_match_all('<optgroup (.*?)/optgroup>', $json['field'], $matches, PREG_SET_ORDER);
+   foreach ($matches as $index => $group) {
+      // Dropdown => Intitulé
+      if ('dropdown' === $question->fields['fieldtype']) {
+         if (!str_contains($group[0], 'label="G&eacute;n&eacute;ral"') && !str_contains($group[0], 'label="Assistance"')) {
+            $json['field'] = str_replace($group[0], '<optgroup></optgroup>', $json['field']);
+         }
+
+         // Général : Lieux
+         if (str_contains($group[0], 'label="G&eacute;n&eacute;ral"')) {
+            $replacement = '';
+            preg_match_all('<option (.*?)/option>', $group[0], $subMatches, PREG_SET_ORDER);
+            foreach ($subMatches as $idx => $grp) {
+               if (!str_contains($grp[0], 'Lieux')) {
+                  $replacement .= '<option></option>';
+               } else {
+                  $replacement .= $grp[0];
+               }
+            }
+            if (count($subMatches) > 0) {
+               $json['field'] = str_replace($group[0], $replacement, $json['field']);
+            }
+         }
+
+         // Assistance : Catégories ITIL
+         if (str_contains($group[0], 'label="Assistance"')) {
+            $replacement = '';
+            preg_match_all('<option (.*?)/option>', $group[0], $subMatches, PREG_SET_ORDER);
+            foreach ($subMatches as $idx => $grp) {
+               if (!str_contains($grp[0], 'Cat&eacute;gories ITIL')) {
+                  $replacement .= '<option></option>';
+               } else {
+                  $replacement .= $grp[0];
+               }
+            }
+            if (count($subMatches) > 0) {
+               $json['field'] = str_replace($group[0], $replacement, $json['field']);
+            }
+         }
+      }
+
+      // Glpiselect => Objet GLPI
+      if ('glpiselect' === $question->fields['fieldtype']) {
+         if (!str_contains($group[0], 'label="Parc"') && !str_contains($group[0], 'label="Administration"')) {
+            $json['field'] = str_replace($group[0], '<optgroup></optgroup>', $json['field']);
+         }
+
+         // Parc : Ordinateurs
+         if (str_contains($group[0], 'label="Parc"')) {
+            $replacement = '';
+            preg_match_all('<option (.*?)/option>', $group[0], $subMatches, PREG_SET_ORDER);
+            foreach ($subMatches as $idx => $grp) {
+               if (!str_contains($grp[0], 'Ordinateurs')) {
+                  $replacement .= '<option></option>';
+               } else {
+                  $replacement .= $grp[0];
+               }
+            }
+            if (count($subMatches) > 0) {
+               $json['field'] = str_replace($group[0], $replacement, $json['field']);
+            }
+         }
+
+         // Administration : Entités, Groupes & Utilisateurs
+         if (str_contains($group[0], 'label="Administration"')) {
+            $replacement = '';
+            preg_match_all('<option (.*?)/option>', $group[0], $subMatches, PREG_SET_ORDER);
+            foreach ($subMatches as $idx => $grp) {
+               if (!str_contains($grp[0], 'Groupes') && !str_contains($grp[0], 'Utilisateurs') && !str_contains($grp[0], 'Entit&eacute;s')) {
+                  $replacement .= '<option></option>';
+               } else {
+                  $replacement .= '<'. $grp[0] . '</option>';
+               }
+            }
+            if (count($subMatches) > 0) {
+               $json['field'] = str_replace($group[0], $replacement, $json['field']);
+            }
+         }
+      }
+   }
 }
 echo json_encode($json);
