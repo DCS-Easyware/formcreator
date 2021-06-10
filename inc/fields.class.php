@@ -102,6 +102,18 @@ class PluginFormcreatorFields
 
       asort($tab_field_types_name);
 
+      // Remove question types who do not work on portal
+      // Errors
+      unset($tab_field_types_name['actor']);      // Acteur
+      unset($tab_field_types_name['hostname']);   // Hostname
+      unset($tab_field_types_name['ldapselect']); // Sélection LDAP
+      // Not displayed in portal
+      unset($tab_field_types_name['ip']);         // Adresse IP
+      unset($tab_field_types_name['requesttype']);// Type de demande
+      unset($tab_field_types_name['tag']);        // Tag
+      // To fix
+      unset($tab_field_types_name['datetime']);   // Date & Heure
+
       return $tab_field_types_name;
    }
 

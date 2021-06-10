@@ -784,6 +784,29 @@ class PluginFormcreatorQuestion extends CommonDBChild implements PluginFormcreat
       echo '<div id="dropdown_values_field">';
       $optgroup = Dropdown::getStandardDropdownItemTypes();
       $decodedValues = json_decode($this->fields['values'], JSON_OBJECT_AS_ARRAY);
+      // Restrict dropdown to Général:Lieux & Assistance:Catégories de ticket
+      foreach ($optgroup as $key => $value) {
+         if ('Général' !== $key && 'Assistance' !== $key) {
+            unset($optgroup[$key]);
+         }
+
+         if ('Général' == $key) {
+            foreach ($optgroup[$key] as $k => $v) {
+               if ('Location' !== $k) {
+                  unset($optgroup[$key][$k]);
+               }
+            }
+         }
+
+         if ('Assistance' == $key) {
+            foreach ($optgroup[$key] as $k => $v) {
+               if ('ITILCategory' !== $k) {
+                  unset($optgroup[$key][$k]);
+               }
+            }
+         }
+      }
+
       array_unshift($optgroup, '---');
       Dropdown::showFromArray('dropdown_values', $optgroup, [
          'value'     => $decodedValues['itemtype'],
@@ -794,35 +817,11 @@ class PluginFormcreatorQuestion extends CommonDBChild implements PluginFormcreat
       echo '<div id="glpi_objects_field">';
       $optgroup = [
          __("Assets") => [
-            Computer::class         => Computer::getTypeName(2),
-            Monitor::class          => Monitor::getTypeName(2),
-            Software::class         => Software::getTypeName(2),
-            Networkequipment::class => Networkequipment::getTypeName(2),
-            Peripheral::class       => Peripheral::getTypeName(2),
-            Printer::class          => Printer::getTypeName(2),
-            Cartridgeitem::class    => Cartridgeitem::getTypeName(2),
-            Consumableitem::class   => Consumableitem::getTypeName(2),
-            Phone::class            => Phone::getTypeName(2),
-            Line::class             => Line::getTypeName(2)],
-         __("Assistance") => [
-            Ticket::class           => Ticket::getTypeName(2),
-            Problem::class          => Problem::getTypeName(2),
-            TicketRecurrent::class  => TicketRecurrent::getTypeName(2)],
-         __("Management") => [
-            Budget::class           => Budget::getTypeName(2),
-            Supplier::class         => Supplier::getTypeName(2),
-            Contact::class          => Contact::getTypeName(2),
-            Contract::class         => Contract::getTypeName(2),
-            Document::class         => Document::getTypeName(2),
-            Project::class          => Project::getTypeName(2)],
-         __("Tools") => [
-            Reminder::class         => __("Notes"),
-            RSSFeed::class          => __("RSS feed")],
+            Computer::class         => Computer::getTypeName(2)],
          __("Administration") => [
             User::class             => User::getTypeName(2),
             Group::class            => Group::getTypeName(2),
-            Entity::class           => Entity::getTypeName(2),
-            Profile::class          => Profile::getTypeName(2)],
+            Entity::class           => Entity::getTypeName(2)],
       ];
       array_unshift($optgroup, '---');
       Dropdown::showFromArray('glpi_objects', $optgroup, [
