@@ -551,6 +551,66 @@ function moveSection(token, section_id, action) {
    }).done(reloadTab);
 }
 
+// === RULES POOLS ===
+function addRulesPool(items_id, token, rank) {
+    modalWindow.load(rootDoc + '/plugins/formcreator/ajax/rulespool.php', {
+        form_id: items_id,
+        _glpi_csrf_token: token,
+        rank
+    }).dialog("open");
+}
+
+function deleteRulesPool(items_id, token, rule_id) { // Todo
+    if(confirm("<?php echo Toolbox::addslashes_deep(__('Are you sure you want to delete this rule:', 'formcreator')); ?> ")) {
+        jQuery.ajax({
+            url: rootDoc + '/plugins/formcreator/front/rulepool.form.php',
+            type: "POST",
+            data: {
+                delete_rule: 1,
+                id: rule_id,
+                plugin_formcreator_pool_id: items_id,
+                _glpi_csrf_token: token
+            }
+        }).done(function () {
+            location.reload();
+        });
+
+    }
+}
+
+function addRuleForPool(pool_id, token) {
+    modalWindow.load(rootDoc + '/plugins/formcreator/ajax/rule.php', {
+        pool_id,
+        _glpi_csrf_token: token
+    }).dialog("open");
+}
+
+// === RULES ===  // Todo : remove section : useless ?
+function addRule(items_id, token, rank) {
+    modalWindow.load(rootDoc + '/plugins/formcreator/ajax/rule.php', {
+        form_id: items_id,
+        _glpi_csrf_token: token,
+        rank
+    }).dialog("open");
+}
+
+function deleteRule(items_id, token, rule_id) {
+    if(confirm("<?php echo Toolbox::addslashes_deep(__('Are you sure you want to delete this rule:', 'formcreator')); ?> ")) {
+        jQuery.ajax({
+            url: rootDoc + '/plugins/formcreator/front/rule.form.php',
+            type: "POST",
+            data: {
+                delete_rule: 1,
+                id: rule_id,
+                plugin_formcreator_forms_id: items_id,
+                _glpi_csrf_token: token
+            }
+        }).done(function () {
+            location.reload();
+        });
+
+    }
+}
 
 // === TARGETS ===
 function addTarget(items_id, token) {

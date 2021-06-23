@@ -715,6 +715,11 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
     */
    public function saveAnswers(PluginFormcreatorForm $form, $data, $fields) {
       global $DB;
+//      Toolbox::logError($form);
+//      Toolbox::logError('----------------------');
+//      Toolbox::logError($data);
+//      Toolbox::logError('----------------------');
+//      Toolbox::logError($fields);
 
       $formanswers_id = isset($data['id'])
                         ? intval($data['id'])
@@ -828,17 +833,27 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                   NotificationEvent::raiseEvent('plugin_formcreator_form_created', $this);
                }
 
-               if (!$this->generateTarget()) {
-                  Session::addMessageAfterRedirect(__('Cannot generate targets!', 'formcreator'), true, ERROR);
+               if (!$this->checkRulesPools($this->getID(), $fields)) {
+                    Session::addMessageAfterRedirect(__('Cannot apply rules', 'formcreator'), true, ERROR);
 
-                  // TODO: find a way to validate the answers
-                  // It the form is not being validated, nothing gives the power to anyone to validate the answers
-                  $this->update([
-                     'id'     => $this->getID(),
-                     'status' => 'waiting',
-                  ]);
-                  return false;
-               }
+                    $this->update([
+                        'id'     => $this->getID(),
+                        'status' => 'waiting',
+                    ]);
+                    return false;
+                }
+
+//               if (!$this->generateTarget()) {
+//                  Session::addMessageAfterRedirect(__('Cannot generate targets!', 'formcreator'), true, ERROR);
+//
+//                  // TODO: find a way to validate the answers
+//                  // It the form is not being validated, nothing gives the power to anyone to validate the answers
+//                  $this->update([
+//                     'id'     => $this->getID(),
+//                     'status' => 'waiting',
+//                  ]);
+//                  return false;
+//               }
                break;
          }
 
@@ -1060,6 +1075,563 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
       return $this->saveAnswers($form, $input, $fields);
    }
 
+    /**
+     * Check rules and create ticket or change, then returns created item id
+     *
+     * @param $id
+     * @param $fields
+     *
+     * @return bool|int|mysqli_result
+     */
+   public function checkRulesPools($id, $fields) {
+       global $DB;
+       $success = true;
+
+//       Toolbox::logError($fields);
+
+       $rulesPoolsToApply = [];
+       $request = [
+           'SELECT' => ['*'],
+           'FROM' => [
+               PluginFormcreatorRulePool::getTable(),
+           ],
+           'WHERE' => [
+               PluginFormcreatorRulePool::getTable().'.plugin_formcreator_forms_id' => $this->fields['plugin_formcreator_forms_id']
+           ]
+       ];
+       $found_rules_pools = $DB->request($request);
+
+       foreach ($found_rules_pools as $pool) {
+           $request = [
+               'SELECT' => ['*'],
+               'FROM' => [
+                   PluginFormcreatorRule::getTable(),
+               ],
+               'LEFT JOIN' => [
+                   PluginFormcreatorRule::getLinkTable() => [
+                       'FKEY' => [
+                           PluginFormcreatorRule::getTable() => 'id',
+                           PluginFormcreatorRule::getLinkTable() => 'rules_id',
+                       ],
+                   ],
+               ],
+               'WHERE' => [
+                   PluginFormcreatorRule::getLinkTable().'.rules_pool_id' => $pool['id']
+               ]
+           ];
+           $found_rules = $DB->request($request);
+
+           foreach ($found_rules as $rule) {
+//               Toolbox::logError($rule);
+               if ($rule['is_active']) {
+                   $ruleCriteriaRequest = [
+                       'SELECT' => ['*'],
+                       'FROM' => [
+                           'glpi_rulecriterias',
+                       ],
+                       'WHERE' => [
+                           'glpi_rulecriterias.rules_id' => $rule['rules_id']
+                       ]
+                   ];
+                   $found_rules_criterias = $DB->request($ruleCriteriaRequest);
+
+                   foreach ($found_rules_criterias as $criterion) {
+                       $rule['criteria'][] = $criterion;
+                   }
+                   if (!isset($rule['criteria']) || count($rule['criteria']) === 0) {
+                       break;
+                   }
+
+                   $ruleActionRequest = [
+                       'SELECT' => ['*'],
+                       'FROM' => [
+                           'glpi_ruleactions',
+                       ],
+                       'WHERE' => [
+                           'glpi_ruleactions.rules_id' => $rule['rules_id']
+                       ]
+                   ];
+                   $found_rules_actions = $DB->request($ruleActionRequest);
+
+                   foreach ($found_rules_actions as $action) {
+                       $rule['actions'][] = $action;
+                   }
+                   if (!isset($rule['actions']) || count($rule['actions']) === 0) {
+                       break;
+                   }
+
+                   $rulesToApply[] = $rule;
+               }
+
+               $pool['rules'][] = $rule;
+//               Toolbox::logError($rule, $pool['rules']);
+           }
+
+           $rulesPoolsToApply[] = $pool;
+       }
+
+       $formTicketsCreated = [];
+       foreach ($rulesPoolsToApply as $poolToApply) {
+//           Toolbox::logError($poolToApply);
+           $defaultData = Ticket::getDefaultValues();
+//           Toolbox::logError($defaultData);
+           $ticketData = $defaultData;
+           $ticket = new Ticket();
+
+           unset($defaultData['entities_id']);
+           unset($defaultData['type']);
+           $changeData = $defaultData;
+           $change = new Change();
+
+//       Toolbox::logError($ticketData);
+//       Toolbox::logError($fields);
+//       Toolbox::logError($ticket);
+//       Toolbox::logError($this);
+
+           $createTicket = false;
+           $createChange = false;
+
+           $rulesOperators = [];
+           foreach ($poolToApply['rules'] as $rule) { // Compile rules
+           Toolbox::logError($rule);
+               $rulesOperators[] = [
+                   'type' => $rule['rules_type'],
+                   'result' => $this->checkCriteria($rule['criteria'], $fields),
+                   'operator' => $rule['match'],
+                   'actions' => $rule['actions']
+               ];
+           }
+
+           $ticketActionsToApply = [];
+           $changeActionsToApply = [];
+           foreach ($rulesOperators as $ruleOperator) { // Todo merge with previous loop ?
+               if ($ruleOperator['result'] &&
+                   ($ruleOperator['operator'] === 'AND' || $ruleOperator['operator'] === '' || $ruleOperator['operator'] === 'OR')) {
+                   if ($ruleOperator['type'] === 'ticket') {
+                       $createTicket = true;
+                       $ticketActionsToApply[] = $ruleOperator['actions'];
+                   }
+                   if ($ruleOperator['type'] === 'change') {
+                       $createChange = true;
+                       $changeActionsToApply[] = $ruleOperator['actions'];
+                   }
+
+                   if ($ruleOperator['operator'] === 'OR') {
+                       break;
+                   }
+               }  else if (!$ruleOperator['result']
+                   && ($ruleOperator['operator'] === 'AND' || $ruleOperator['operator'] === '')) {
+                   if ($ruleOperator['type'] === 'ticket') {
+                       $createTicket = false;
+                   }
+                   if ($ruleOperator['type'] === 'change') {
+                       $createChange = false;
+                   }
+               }
+           }
+
+           $ticketActionsToApply = call_user_func_array('array_merge', $ticketActionsToApply);
+           $changeActionsToApply = call_user_func_array('array_merge', $changeActionsToApply);
+
+           if ($createTicket) {
+               $ticketData['name'] = $this->getForm()->getField('name');
+               $success = $ticket->add($this->applyActions($ticketActionsToApply, $ticketData));
+               if ($success) {
+                   $formTicketsCreated[] = $success;
+                   if (Plugin::isPluginLoaded('fields')) {
+                       $success = $this->applyAdditionalFieldsActions($ticketActionsToApply, $success);
+                   }
+               }
+           }
+
+           if ($createChange) {
+               $changeData['name'] = $this->getForm()->getField('name');
+               $changeId = $change->add($this->applyActions($changeActionsToApply, $changeData));
+               if ($changeId) {
+                   if (Plugin::isPluginLoaded('fields')) {
+                       $success = $this->applyAdditionalFieldsActions($changeActionsToApply, $changeId);
+                   }
+               }
+
+               $url = sprintf('<a href="/front/change.form.php?id=%d">%d</a>', $changeId, $changeId);
+               Session::addMessageAfterRedirect(sprintf('Votre changement a bien été enregistré. (Changement: %s)', $url), true, INFO);
+           }
+       }
+
+        foreach ($formTicketsCreated as $ticketCreated1) {
+            array_shift($formTicketsCreated);
+            foreach ($formTicketsCreated as $ticketCreated2) {
+                $request = "INSERT INTO glpi_tickets_tickets (tickets_id_1, tickets_id_2, link) VALUES ($ticketCreated1, $ticketCreated2, 1)";
+                $success = $DB->query($request);
+            }
+        }
+
+       return $success;
+   }
+
+   private function checkFieldsForPatternAndCondition($field, $pattern, $condition, $criterion) {
+       $matchedCriteria = false;
+
+       // hidden questions
+       if ($condition !== 30 && $field->getRawValue() === '' && $pattern !== '' && $criterion === 'answer') {
+           return false;
+       }
+
+       // Done conditions
+       // Rule::PATTERN_IS,
+       // Rule::PATTERN_IS_NOT,
+       // Rule::PATTERN_CONTAIN ,
+       // Rule::PATTERN_NOT_CONTAIN,
+       // Rule::PATTERN_BEGIN,
+       // Rule::PATTERN_END,
+       // Rule::REGEX_MATCH,
+       // Rule::REGEX_NOT_MATCH,
+       // Rule::PATTERN_UNDER,      Not visible in dropdown
+       // Rule::PATTERN_NOT_UNDER,  Not visible in dropdown
+       // Rule::PATTERN_IS_EMPTY
+       // Rule::PATTERN_FIND
+       switch ($condition) {
+           case 0:
+               if ($criterion === 'question') {
+                   $matchedCriteria = $field->getLabel() === $pattern;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = $field->getRawValue()[0] === $pattern;
+                   } else {
+                       $matchedCriteria = $field->getRawValue() === $pattern;
+                   }
+               }
+               // Todo if ($criterion === 'visibility')
+               break;
+           case 1:
+               if ($criterion === 'question') {
+                   $matchedCriteria = $field->getLabel() !== $pattern;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = $field->getRawValue()[0] !== $pattern;
+                   } else {
+                       $matchedCriteria = $field->getRawValue() !== $pattern;
+                   }
+               }
+               break;
+           case 2:
+               if ($criterion === 'question') {
+                   $matchedCriteria = strpos($field->getLabel(), $pattern) !== false;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = strpos($field->getRawValue()[0], $pattern) !== false;
+                   } else {
+                       $matchedCriteria = strpos($field->getRawValue(), $pattern) !== false;
+                   }
+               }
+               break;
+           case 3:
+               if ($criterion === 'question') {
+                   $matchedCriteria = strpos($field->getLabel(), $pattern) === false;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = strpos($field->getRawValue()[0], $pattern) === false;
+                   } else {
+                       $matchedCriteria = strpos($field->getRawValue(), $pattern) === false;
+                   }
+               }
+               break;
+           case 4:
+               if ($criterion === 'question') {
+                   $matchedCriteria = strpos($field->getLabel(), $pattern) === 0;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = strpos($field->getRawValue()[0], $pattern) === 0;
+                   } else {
+                       $matchedCriteria = strpos($field->getRawValue(), $pattern) === 0;
+                   }
+               }
+               break;
+           case 5:
+               if ($criterion === 'question') {
+                   $matchedCriteria = substr_compare($field->getLabel(), $pattern, -strlen($pattern)) === 0;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = substr_compare($field->getRawValue()[0], $pattern, -strlen($pattern)) === 0;
+                   } else {
+                       $matchedCriteria = substr_compare($field->getRawValue(), $pattern, -strlen($pattern)) === 0;
+                   }
+               }
+               break;
+           case 6:
+               if ($criterion === 'question') {
+                   $matchedCriteria = preg_match($pattern, $field->getLabel()) !== false;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = preg_match($pattern, $field->getRawValue()[0]) !== false;
+                   } else {
+                       $matchedCriteria = preg_match($pattern, $field->getRawValue()) !== false;
+                   }
+               }
+               break;
+           case 7:
+               if ($criterion === 'question') {
+                   $matchedCriteria = preg_match($pattern, $field->getLabel()) === false;
+               }
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = preg_match($pattern, $field->getRawValue()[0]) === false;
+                   } else {
+                       $matchedCriteria = preg_match($pattern, $field->getRawValue()) === false;
+                   }
+               }
+               break;
+           case 10:
+               if ($criterion === 'answer' && is_array($field->getRawValue())) {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = in_array($pattern, $field->getRawValue()[0]);
+                   } else {
+                       $matchedCriteria = in_array($pattern, $field->getRawValue());
+                   }
+               }
+               break;
+           case 11:
+               if ($criterion === 'answer' && is_numeric($field->getRawValue())) {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = intval($pattern) > intval($field->getRawValue()[0]);
+                   } else {
+                       $matchedCriteria = intval($pattern) > intval($field->getRawValue());
+                   }
+               }
+               break;
+           case 12:
+               if ($criterion === 'answer' && is_numeric($field->getRawValue())) {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = intval($pattern) < intval($field->getRawValue()[0]);
+                   } else {
+                       $matchedCriteria = intval($pattern) < intval($field->getRawValue());
+                   }
+               }
+               break;
+           case 30:
+               if ($criterion === 'answer') {
+                   if (is_array($field->getRawValue())) {
+                       $matchedCriteria = empty($field->getRawValue()[0]) || $field->getRawValue()[0] === '';
+                   } else {
+                       $matchedCriteria = empty($field->getRawValue()) || $field->getRawValue() === '';
+                   }
+               }
+               break;
+       }
+
+       return $matchedCriteria;
+   }
+
+   private function checkCriteria($criteria, $fields) {
+       $matchedCriteria = false;
+
+       foreach ($fields as $field) {
+           $matchedCriteriaArray = [];
+           foreach ($criteria as $criterion) {
+                $matchedCriteria = $this->checkFieldsForPatternAndCondition($field, $criterion['pattern'], $criterion['condition'], $criterion['criteria']);
+                $matchedCriteriaArray[] = $matchedCriteria;
+           }
+
+           if (count(array_filter($matchedCriteriaArray, 'strlen')) === count($criteria)) {
+               break;
+           }
+       }
+
+       return $matchedCriteria; // Todo return matched $field if needed
+   }
+
+   private function applyAdditionalFieldsActions($actions, $itemId) {
+       global $DB;
+
+       $request = [
+           'SELECT' => [
+               'glpi_plugin_fields_fields.name',
+               'glpi_plugin_fields_fields.label',
+               'glpi_plugin_fields_fields.type',
+               'glpi_plugin_fields_containers.name as container_name',
+               'glpi_plugin_fields_containers.id as container_id',
+               'glpi_plugin_fields_containers.itemtypes'
+           ],
+           'FROM' => [
+               'glpi_plugin_fields_fields',
+           ],
+           'LEFT JOIN' => [
+               'glpi_plugin_fields_containers' => [
+                   'FKEY' => [
+                       'glpi_plugin_fields_fields' => 'plugin_fields_containers_id',
+                       'glpi_plugin_fields_containers' => 'id',
+                   ],
+               ],
+           ],
+           'WHERE' => [
+               [
+                   'OR' => [
+                       ['glpi_plugin_fields_containers.itemtypes' => '["Ticket"]'],
+                       ['glpi_plugin_fields_containers.itemtypes' => '["Change"]']
+                   ]
+               ],
+           ]
+       ];
+       $found_fields = $DB->request($request);
+
+       $fieldValuesList = [];
+       $tableName = '';
+       $containerId = 0;
+
+       foreach ($actions as $action) {
+           if ($action['action_type'] === 'assign') {
+               foreach ($found_fields as $field) {
+                   if ('fields_' . $field['name'] === $action['field'] && preg_match('/"([^"]+)"/', $field['itemtypes'], $matches)) {
+                       $tableName = 'glpi_plugin_fields_' . strtolower($matches[1]) . $field['container_name'] . 's';
+                       $containerId = $field['container_id'];
+                       $fieldValuesList[] = [
+                           'field' => $field['name'],
+                           'value' => $action['value']
+                       ];
+                   }
+               }
+           }
+       }
+
+       if (count($fieldValuesList) === 0) {
+           return true;
+       }
+
+       $fields = '';
+       $values = '';
+       foreach($fieldValuesList as $value) {
+           $fields .= ', ' . $value['field'];
+           $values .= ', \'' . $value['value'] . '\'';
+       }
+
+       $query = sprintf('INSERT INTO %s (items_id, plugin_fields_containers_id%s) VALUES (%d, %d%s)',
+           $tableName, $fields, $itemId, $containerId, $values);
+
+       return $DB->query($query);;
+   }
+
+    /**
+     * Parse target content to replace TAGS like ##FULLFORM## by the values
+     *
+     * @param  string $content                            String to be parsed
+     * @param  PluginFormcreatorFormAnswer $formanswer   Formanswer object where answers are stored
+     * @param  boolean $richText                          Disable rich text mode for field rendering
+     * @return string                                     Parsed string with tags replaced by form values
+     */
+    protected function parseTags($content, PluginFormcreatorFormAnswer $formanswer, $richText = false) {
+        global $DB;
+
+        // retrieve answers
+        $answers_values = $formanswer->getAnswers($formanswer->getID());
+
+        // Retrieve questions
+        $formFk = PluginFormcreatorForm::getForeignKeyField();
+        $questions = (new PluginFormcreatorQuestion())
+            ->getQuestionsFromForm($formanswer->getField($formFk));
+
+        $fields = [];
+
+        // Prepare all fields of the form
+        foreach ($questions as $questionId => $question) {
+            $answer = $answers_values['formcreator_field_' . $questionId];
+            $fields[$questionId] = PluginFormcreatorFields::getFieldInstance(
+                $question->getField('fieldtype'),
+                $question
+            );
+            $fields[$questionId]->deserializeValue($answer);
+        }
+
+        foreach ($questions as $questionId => $question) {
+            if (!PluginFormcreatorFields::isVisible($questionId, $fields)) {
+                $name = '';
+                $value = '';
+            } else {
+                $name  = $question->getField('name');
+                $value = $fields[$questionId]->getValueForTargetText($richText);
+            }
+
+            $content = str_replace('##question_' . $questionId . '##', Toolbox::addslashes_deep($name), $content);
+            $content = str_replace('##answer_' . $questionId . '##', Toolbox::addslashes_deep($value), $content);
+            if ($question->getField('fieldtype') === 'file') {
+                if (strpos($content, '##answer_' . $questionId . '##') !== false) {
+                    if (!is_array($value)) {
+                        $value = [$value];
+                    }
+                }
+            }
+        }
+
+        return $content;
+    }
+
+   public function applyActions($actions, $itemData) {
+       global $DB;
+//        Toolbox::logError($actions);
+//        Toolbox::logError($itemData);
+
+        foreach ($actions as $action) {
+            if ($action['field'] === 'fullform') {
+                $itemData['content'] = $this->getFullForm(true);
+                $itemData['content'] = Toolbox::addslashes_deep($itemData['content']);
+                $itemData['content'] = $this->parseTags($itemData['content'], $this, true);
+            }
+
+            // TODO switch and factorize
+            if ($action['action_type'] === 'assign') {
+                $itemData[$action['field']] = $action['value'];
+            }
+
+            if ($action['action_type'] === 'append') {
+                if ($itemData[$action['field']] === 0) {
+                    $itemData[$action['field']] = $action['value'];
+                } else {
+                    $dataArray = [];
+                    $dataArray[] = $itemData[$action['field']];
+                    $dataArray[] = $action['value'];
+                    $itemData[$action['field']] = $dataArray;
+                }
+            }
+
+            if ($action['action_type'] === 'add_validation') {
+                $itemData[$action['field']][] = $action['value'];
+            }
+
+            if ($action['action_type'] === 'compute') {
+                if ($action['field'] === 'priority') {
+                    $itemData['priority'] = Ticket::computePriority($itemData['urgency'], $itemData['impact']);
+                }
+            }
+
+            if ($action['action_type'] === 'do_not_compute') {
+                $itemData['takeintoaccount_delay_stat'] = $action['value'];
+            }
+
+            if ($action['action_type'] === 'fromuser') {
+                $ruleActionRequest = [
+                    'SELECT' => ['locations_id'],
+                    'FROM' => [
+                        'glpi_users',
+                    ],
+                    'WHERE' => [
+                        'glpi_users.id' => $_SESSION['glpiID']
+                    ]
+                ];
+                $itemData[$action['field']] = $DB->request($ruleActionRequest)->next()['locations_id'];
+            }
+        }
+
+//       Toolbox::logError('AFTER----------------', $itemData);
+
+        return $itemData;
+   }
+
    /**
     * Generates all targets for the answers
     */
@@ -1083,6 +1655,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
          $targetObject = new $target['itemtype'];
          $targetObject->getFromDB($target['items_id']);
          $generatedTarget = $targetObject->save($this);
+//          Toolbox::logError($generatedTarget);
          if ($generatedTarget === null) {
             $success = false;
             break;

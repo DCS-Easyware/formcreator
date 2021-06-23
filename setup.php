@@ -179,6 +179,7 @@ function plugin_init_formcreator() {
             if (Session::haveRight('entity', UPDATE)) {
                $PLUGIN_HOOKS['config_page']['formcreator']         = 'front/form.php';
                $PLUGIN_HOOKS['menu_toadd']['formcreator']['admin'] = 'PluginFormcreatorForm';
+               $PLUGIN_HOOKS["menu_toadd"]['formcreator']['admin'] = 'PluginFormcreatorRulePool';
                $links['config'] = '/plugins/formcreator/front/form.php';
                $links['add']    = '/plugins/formcreator/front/form.form.php';
             }
@@ -222,6 +223,11 @@ function plugin_init_formcreator() {
          ]);
 
          Plugin::registerClass(PluginFormcreatorEntityconfig::class, ['addtabon' => Entity::class]);
+
+         Plugin::registerClass(PluginFormcreatorRule::class);
+         Plugin::registerClass(PluginFormcreatorRulePool::class);
+         Plugin::registerClass(PluginFormcreatorRuleCollection::class,
+              ['rulecollections_types'=>true]);
       }
 
       // Load JS and CSS files if we are on a page which need them
