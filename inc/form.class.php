@@ -579,7 +579,8 @@ class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExpor
       $this->addDefaultFormTab($ong);
       $this->addStandardTab(PluginFormcreatorQuestion::class, $ong, $options);
       $this->addStandardTab(PluginFormcreatorForm_Profile::class, $ong, $options);
-      $this->addStandardTab(PluginFormcreatorTarget::class, $ong, $options);
+//      $this->addStandardTab(PluginFormcreatorTarget::class, $ong, $options);
+      $this->addStandardTab(PluginFormcreatorRule::class, $ong, $options);
       $this->addStandardTab(__CLASS__, $ong, $options);
       $this->addStandardTab(PluginFormcreatorFormAnswer::class, $ong, $options);
       $this->addStandardTab(Log::class, $ong, $options);
@@ -1183,6 +1184,7 @@ class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExpor
       $question = new PluginFormcreatorQuestion();
 
       $found_questions = $question->getQuestionsFromForm($this->getID());
+//      Toolbox::logError($found_questions);
       foreach ($found_questions as $id => $question) {
          $fields[$id] = PluginFormcreatorFields::getFieldInstance(
             $question->fields['fieldtype'],

@@ -222,6 +222,10 @@ function plugin_init_formcreator() {
          ]);
 
          Plugin::registerClass(PluginFormcreatorEntityconfig::class, ['addtabon' => Entity::class]);
+
+         Plugin::registerClass(PluginFormcreatorRule::class);
+         Plugin::registerClass(PluginFormcreatorRuleCollection::class,
+              ['rulecollections_types'=>true]);
       }
 
       // Load JS and CSS files if we are on a page which need them
