@@ -1087,8 +1087,6 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
        global $DB;
        $success = true;
 
-//       Toolbox::logError($fields);
-
        $rulesPoolsToApply = [];
        $request = [
            'SELECT' => ['*'],
@@ -1122,7 +1120,6 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
            $found_rules = $DB->request($request);
 
            foreach ($found_rules as $rule) {
-//               Toolbox::logError($rule);
                if ($rule['is_active']) {
                    $ruleCriteriaRequest = [
                        'SELECT' => ['*'],
@@ -1164,7 +1161,6 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                }
 
                $pool['rules'][] = $rule;
-//               Toolbox::logError($rule, $pool['rules']);
            }
 
            $rulesPoolsToApply[] = $pool;
@@ -1172,9 +1168,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
 
        $formTicketsCreated = [];
        foreach ($rulesPoolsToApply as $poolToApply) {
-//           Toolbox::logError($poolToApply);
            $defaultData = Ticket::getDefaultValues();
-//           Toolbox::logError($defaultData);
            $ticketData = $defaultData;
            $ticket = new Ticket();
 
@@ -1183,28 +1177,50 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
            $changeData = $defaultData;
            $change = new Change();
 
-//       Toolbox::logError($ticketData);
-//       Toolbox::logError($fields);
-//       Toolbox::logError($ticket);
-//       Toolbox::logError($this);
-
            $createTicket = false;
            $createChange = false;
 
            $rulesOperators = [];
            foreach ($poolToApply['rules'] as $rule) { // Compile rules
-           Toolbox::logError($rule);
+
+               // Set regex pattern at action depending of regex type criteria
+                foreach ($rule['criteria'] as $criterion) {
+                    if ($criterion['condition'] === '6' || $criterion['condition'] === '7') {
+                        foreach ($rule['actions'] as $key => $action) {
+                            if ($action['action_type'] === 'regex_result' || $action['action_type'] === 'append_regex_result') {
+                                $rule['actions'][$key]['regex'] = $criterion['pattern'];
+                            }
+                        }
+                    }
+                }
+
+
+               $fieldMatched = $this->checkCriteria($rule['criteria'], $fields);
+
+                if ($fieldMatched) {
+                    foreach ($rule['actions'] as &$action) {
+                        $action['field_value'] = $fieldMatched->getRawValue();
+                    }
+                }
+
                $rulesOperators[] = [
                    'type' => $rule['rules_type'],
-                   'result' => $this->checkCriteria($rule['criteria'], $fields),
+                   'result' => $fieldMatched !== null,
+                   'field' => $fieldMatched,
                    'operator' => $rule['match'],
                    'actions' => $rule['actions']
                ];
+//               $rulesOperators[] = [
+//                   'type' => $rule['rules_type'],
+//                   'result' => $this->checkCriteria($rule['criteria'], $fields),
+//                   'operator' => $rule['match'],
+//                   'actions' => $rule['actions']
+//               ];
            }
 
            $ticketActionsToApply = [];
            $changeActionsToApply = [];
-           foreach ($rulesOperators as $ruleOperator) { // Todo merge with previous loop ?
+           foreach ($rulesOperators as $ruleOperator) {
                if ($ruleOperator['result'] &&
                    ($ruleOperator['operator'] === 'AND' || $ruleOperator['operator'] === '' || $ruleOperator['operator'] === 'OR')) {
                    if ($ruleOperator['type'] === 'ticket') {
@@ -1269,7 +1285,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
        return $success;
    }
 
-   private function checkFieldsForPatternAndCondition($field, $pattern, $condition, $criterion) {
+   private function checkFieldsForPatternAndCondition($field, $pattern, $condition, $criterion, $fields) {
        $matchedCriteria = false;
 
        // hidden questions
@@ -1302,7 +1318,14 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                        $matchedCriteria = $field->getRawValue() === $pattern;
                    }
                }
-               // Todo if ($criterion === 'visibility')
+
+               if ($criterion === 'visibility') {
+                    $matchedCriteria = $pattern ?
+                       PluginFormcreatorFields::isVisible($field->getQuestionId(), $fields) :
+                       !PluginFormcreatorFields::isVisible($field->getQuestionId(), $fields);
+//                   Toolbox::logError('VISIBILITY--------', $matchedCriteria, $pattern, $field);
+                   Toolbox::logError('VISIBILITY--------', $matchedCriteria);
+               }
                break;
            case 1:
                if ($criterion === 'question') {
@@ -1365,6 +1388,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                }
                break;
            case 6:
+//               Toolbox::logError($field, $pattern, $criterion);
                if ($criterion === 'question') {
                    $matchedCriteria = preg_match($pattern, $field->getLabel()) !== false;
                }
@@ -1372,8 +1396,11 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                    if (is_array($field->getRawValue())) {
                        $matchedCriteria = preg_match($pattern, $field->getRawValue()[0]) !== false;
                    } else {
-                       $matchedCriteria = preg_match($pattern, $field->getRawValue()) !== false;
+                       $matchedCriteria = preg_match($pattern, $field->getRawValue(), $matches) !== false;
+//                       $field['regex_value'] = $matches[0];
+
                    }
+//                   Toolbox::logError('-----------------------', $pattern, $field);
                }
                break;
            case 7:
@@ -1431,20 +1458,22 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
 
    private function checkCriteria($criteria, $fields) {
        $matchedCriteria = false;
+       $matchedField = null;
 
        foreach ($fields as $field) {
            $matchedCriteriaArray = [];
            foreach ($criteria as $criterion) {
-                $matchedCriteria = $this->checkFieldsForPatternAndCondition($field, $criterion['pattern'], $criterion['condition'], $criterion['criteria']);
+                $matchedCriteria = $this->checkFieldsForPatternAndCondition($field, $criterion['pattern'], $criterion['condition'], $criterion['criteria'], $fields);
                 $matchedCriteriaArray[] = $matchedCriteria;
            }
 
            if (count(array_filter($matchedCriteriaArray, 'strlen')) === count($criteria)) {
+               $matchedField = $field;
                break;
            }
        }
-
-       return $matchedCriteria; // Todo return matched $field if needed
+//       return $matchedCriteria;
+       return $matchedField;
    }
 
    private function applyAdditionalFieldsActions($actions, $itemId) {
@@ -1517,6 +1546,7 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
        return $DB->query($query);;
    }
 
+   // Todo remove ?
     /**
      * Parse target content to replace TAGS like ##FULLFORM## by the values
      *
@@ -1573,8 +1603,6 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
 
    public function applyActions($actions, $itemData) {
        global $DB;
-//        Toolbox::logError($actions);
-//        Toolbox::logError($itemData);
 
         foreach ($actions as $action) {
             if ($action['field'] === 'fullform') {
@@ -1583,19 +1611,27 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                 $itemData['content'] = $this->parseTags($itemData['content'], $this, true);
             }
 
-            // TODO switch and factorize
+            if (!isset($action['action_type'])) {
+                break;
+            }
+
             if ($action['action_type'] === 'assign') {
+//                Toolbox::logError('action-------------',$action);
                 $itemData[$action['field']] = $action['value'];
             }
 
             if ($action['action_type'] === 'append') {
-                if ($itemData[$action['field']] === 0) {
-                    $itemData[$action['field']] = $action['value'];
+                if ($action['field'] === 'name' || $action['field'] === 'content') {
+                    $itemData[$action['field']] .= $action['value'];
                 } else {
-                    $dataArray = [];
-                    $dataArray[] = $itemData[$action['field']];
-                    $dataArray[] = $action['value'];
-                    $itemData[$action['field']] = $dataArray;
+                    if ($itemData[$action['field']] === 0) {
+                        $itemData[$action['field']] = $action['value'];
+                    } else {
+                        $dataArray = [];
+                        $dataArray[] = $itemData[$action['field']];
+                        $dataArray[] = $action['value'];
+                        $itemData[$action['field']] = $dataArray;
+                    }
                 }
             }
 
@@ -1625,9 +1661,44 @@ class PluginFormcreatorFormAnswer extends CommonDBTM
                 ];
                 $itemData[$action['field']] = $DB->request($ruleActionRequest)->next()['locations_id'];
             }
-        }
 
-//       Toolbox::logError('AFTER----------------', $itemData);
+            if ($action['action_type'] === 'regex_result') { // Only for name and content @see formcreator/inc/rule.class.php
+                if ($action['value'] === '#0') {
+                    if (isset($action['regex']) && isset($action['field_value']) && $action['field_value']) {
+                        if (preg_match($action['regex'], $action['field_value'], $matches) !== false) {
+                            $itemData[$action['field']] = $matches[0];
+                        }
+                    }
+                } else if (strpos($action['value'], '#0') !== false) {
+                    if (isset($action['regex']) && isset($action['field_value']) && $action['field_value']) {
+                        if (preg_match($action['regex'], $action['field_value'], $matches) !== false) {
+                            $itemData[$action['field']] = str_replace('#0', $matches[0], $action['value']);
+                        }
+                    }
+                }
+                else {
+                    $itemData[$action['field']] = $action['value'];
+                }
+            }
+
+            if ($action['action_type'] === 'append_regex_result') { // Only for name and content @see formcreator/inc/rule.class.php
+                if ($action['value'] === '#0') {
+                    if (isset($action['regex']) && isset($action['field_value']) && $action['field_value']) {
+                        if (preg_match($action['regex'], $action['field_value'], $matches) !== false) {
+                            $itemData[$action['field']].= $matches[0];
+                        }
+                    }
+                } else if (strpos($action['value'], '#0') !== false) {
+                    if (isset($action['regex']) && isset($action['field_value']) && $action['field_value']) {
+                        if (preg_match($action['regex'], $action['field_value'], $matches) !== false) {
+                            $itemData[$action['field']] .= str_replace('#0', $matches[0], $action['value']);
+                        }
+                    }
+                } else {
+                    $itemData[$action['field']] = $action['value'];
+                }
+            }
+        }
 
         return $itemData;
    }

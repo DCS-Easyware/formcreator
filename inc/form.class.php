@@ -958,7 +958,7 @@ class PluginFormcreatorForm extends CommonDBTM implements PluginFormcreatorExpor
             'ORDER'  => 'order ASC'
          ]);
          foreach ($questions as $question_line) {
-             Toolbox::logError($question_line);
+//             Toolbox::logError($question_line);
             $question = new PluginFormcreatorQuestion();
             $question->getFromDB($question_line['id']);
             $field = PluginFormcreatorFields::getFieldInstance(

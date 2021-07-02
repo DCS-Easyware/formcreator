@@ -69,13 +69,14 @@ class PluginFormcreatorRule extends Rule
         $actions                                              = [];
 
         $actions['fullform']['name']                          = __('Formulaire complet');
+        $actions['fullform']['type']                          = 'yesonly';
         $actions['fullform']['force_actions']                 = ['assign'];
 
-        $actions['name']['name']                           = __('Title');
-        $actions['name']['force_actions']                 = ['assign'];
+        $actions['name']['name']                              = __('Title');
+        $actions['name']['force_actions']                     = ['assign', 'append', 'regex_result', 'append_regex_result'];
 
         $actions['content']['name']                           = __('Content');
-        $actions['content']['force_actions']                 = ['assign'];
+        $actions['content']['force_actions']                  = ['assign', 'append', 'regex_result', 'append_regex_result'];
 
         $actions['itilcategories_id']['name']                 = __('Category');
         $actions['itilcategories_id']['type']                 = 'dropdown';
@@ -246,7 +247,7 @@ class PluginFormcreatorRule extends Rule
 
             foreach ($found_fields as $field) {
                 if (preg_match('/"([^"]+)"/', $field['itemtypes'], $matches)) {
-                    $actions['fields_' . $field['name']]['name'] = $field['label'];
+                    $actions['fields_' . $field['name']]['name'] = __("Additionnal fields", "fields") . ' : ' . $field['label'];
                     $actions['fields_' . $field['name']]['type'] = $field['type'];
                     $actions['fields_' . $field['name']]['linkfield'] = $field['name'];
                     $tableName = strtolower($matches[1]) . $field['container_name'] . 's';
@@ -291,12 +292,12 @@ class PluginFormcreatorRule extends Rule
         $criterias['answer']['field']        = 'answer';
         $criterias['answer']['name']         = 'Question : Valeur réponse';
 
-        $criterias['visibility']['table']        = 'glpi_plugin_formcreator_answers'; // Todo glpi_plugins_formcreator_questions_conditions
-        $criterias['visibility']['field']        = 'visibility'; // Todo OR create field visibility
+//        $criterias['visibility']['table']        = 'glpi_plugin_formcreator_answers'; // Todo glpi_plugins_formcreator_questions_conditions
+        $criterias['visibility']['field']        = 'visibility';
         $criterias['visibility']['name']         = 'Question : Visibilité';
+        $criterias['visibility']['type']         = 'yesno';
         $criterias['visibility']['allow_condition'] = [
-            Rule::PATTERN_IS,
-            Rule::PATTERN_IS_NOT
+            Rule::PATTERN_IS
         ];
 
         return $criterias;
@@ -414,34 +415,24 @@ class PluginFormcreatorRule extends Rule
         echo '<td width="5%%"><strong>'.__('Name').' <span style="color:red;">*</span></strong></td>';
         echo '<td width="40%"><input type="text" name="name" style="width:90%;" value="" /></td>';
         echo '<td width="5%"><strong>'._n('Match', 'Matches', 1).'</strong></td>';
-        echo '<td width="10%">';
+        echo '<td width="15%">';
         $matches = ['' => '-----'];
         $matches['AND'] = 'AND';
         $matches['OR'] = 'OR';
-//        if (!isset($_REQUEST['is_first']) || intval($_REQUEST['rank']) > 0) {
-//            $matches['AND'] = 'AND';
-//            $matches['OR'] = 'OR';
-//        }
         Dropdown::showFromArray('match', $matches);
         echo '</td>';
         echo '<td width="5%"><strong>'._n('Type', 'Types', 1).' <span style="color:red;">*</span></strong></td>';
-        echo '<td width="15%">';
+        echo '<td width="20%">';
         Dropdown::showFromArray('type', [
             'ticket' => 'Ticket',
             'change'  => 'Changement',
         ]);
         echo '</td>';
-        echo '<td width="10%"><strong>'._n('Rules pool', 'Rules pool', 1).'</strong></td>';
-        echo '<td width="10%">';
-        $options = isset($_REQUEST['pool_id']) ? ['value' => intval($_REQUEST['pool_id'])] : [];
-        PluginFormcreatorRulePool::dropdown($options);
-        echo '</td>';
         echo '</tr>';
 
         echo '<tr class="line0">';
         echo '<td colspan="8" class="center">';
-//        echo '<input type="hidden" name="plugin_formcreator_forms_id" value="'.intval($_REQUEST['form_id']).'" />';
-//        echo '<input type="hidden" name="pool_id" value="'.intval($_REQUEST['pool_id']).'" />';
+        echo '<input type="hidden" name="plugin_formcreator_rulepools_id" value="'.intval($_REQUEST['pool_id']).'" />';
         echo '<input type="submit" name="add" class="submit_button" value="'.__('Add').'" />';
         echo '</td>';
         echo '</tr>';

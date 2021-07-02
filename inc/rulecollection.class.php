@@ -6,12 +6,12 @@ class PluginFormcreatorRuleCollection extends RuleCollection
 
     public $itemtype = 'PluginFormcreatorRuleCollection';
 
-    /**
-     * Set stop play rules when have the first rule of list match
-     *
-     * @var boolean
-     */
-    public $stop_on_first_match=true;
+//    /**
+//     * Set stop play rules when have the first rule of list match
+//     *
+//     * @var boolean
+//     */
+//    public $stop_on_first_match = true;
 
     /**
      * Get name of this type by language of the user connected
@@ -46,15 +46,6 @@ class PluginFormcreatorRuleCollection extends RuleCollection
 //        }
 //        return $menu;
 //    }
-//    function addDefaultFormTab(array &$ong) {
-//        Toolbox::logError('here');
-//        if (self::isLayoutExcludedPage()
-//            || !self::isLayoutWithMain()
-//            || !method_exists($this, "showForm")) {
-//            $ong[$this->getType().'$main'] = $this->getTypeName(1);
-//        }
-//        return $this;
-//    }
 
     function getRuleListCriteria($options = []) {
         $rules = parent::getRuleListCriteria();
@@ -73,5 +64,20 @@ class PluginFormcreatorRuleCollection extends RuleCollection
         }
 
         return $rules;
+    }
+
+    /**
+     * Print a title if needed which will be displayed above list of rules
+     **/
+    function title() {
+        global $DB;
+
+        if (isset($_SESSION['plugin_formcreator_pool_id'])) {
+            $query = "SELECT name FROM glpi_plugin_formcreator_rulepools WHERE id=".$_SESSION['plugin_formcreator_pool_id'];
+            $pool_name = $DB->query($query)->fetch_assoc()['name'];
+
+            echo '<h3>'.$pool_name.'</h3>';
+            echo '<br>';
+        }
     }
 }

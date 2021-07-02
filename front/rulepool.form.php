@@ -23,7 +23,6 @@ if ($plugin->isActivated("formcreator")) {
         $rulepool->update($_POST);
         Html::back();
     } else if (isset($_POST["delete_rule"])) {
-//        $rulepool->cleanRules($_POST);
         if ($rulepool->delete($_POST)) {
             if ($rulepool->cleanRules($_POST)) {
                 Html::redirect($CFG_GLPI["root_doc"] . '/plugins/formcreator/front/rulepool.php');
@@ -37,7 +36,6 @@ if ($plugin->isActivated("formcreator")) {
             'id'        => $id,
             'itemtype'  => $rulepool->itemtype
         ]);
-        $_SESSION['plugin_formcreator_pool_id'] = $id;
 
         Html::footer();
     }

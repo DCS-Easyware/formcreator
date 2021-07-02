@@ -103,8 +103,8 @@ class PluginFormcreatorRulePool extends CommonDropdown
      */
     public function countRules($id) {
         global $DB;
-        $query = 'SELECT COUNT(rules_id) FROM glpi_plugin_formcreator_rules WHERE rules_pool_id=' . $id;
-        return $DB->query($query)->fetch_assoc()['COUNT(rules_id)'];
+        $query = 'SELECT COUNT(glpi_plugin_formcreator_rules.rules_id) FROM glpi_plugin_formcreator_rules LEFT JOIN glpi_rules ON glpi_rules.id = glpi_plugin_formcreator_rules.rules_pool_id WHERE glpi_rules.id=' . $id;
+        return $DB->query($query)->fetch_assoc()['COUNT(glpi_plugin_formcreator_rules.rules_id)'];
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
@@ -189,25 +189,31 @@ class PluginFormcreatorRulePool extends CommonDropdown
         echo "<td>";
         Html::autocompletionTextField($this, "name");
         echo "</td>";
-        echo "<td>";
-        $nb = $this->countRules($id);
-        $url = $CFG_GLPI["root_doc"]."/plugins/formcreator/front/rule.php";
-        if ($nb > 0) {
-            echo '<a href="'.$url.'">Liste des règles - '.$nb.'</a>';
-        }
-        echo "</td></tr>\n";
+        echo "<td></tr>\n";
 
         echo "<tr class='tab_bg_1'>";
         echo "<td>".__('Description')."</td>";
         echo "<td>";
-        Html::autocompletionTextField($this, "description");
-        echo "</td>";
-        echo "<td>";
+        Html::textarea(['name'              => 'description',
+            'value'             => $this->fields["description"],
+            'cols'              => 100,
+            'rows'              => 10]);
+        echo "</td></tr>\n";
+
+        echo "<tr class='tab_bg_1'>";
+        echo "<td width='10%'>";
         echo '<a href="javascript:addRuleForPool('.$id.', \''.$token.'\');">
                 <img src="'.$CFG_GLPI['root_doc'].'/pics/menu_add.png" alt="+" align="absmiddle" />
                 '.__('Add a rule', 'formcreator').'
             </a>';
-        echo "</td></tr>\n";
+        echo "</td>";
+        echo "<td>";
+        $nb = $this->countRules($id);
+        $url = $CFG_GLPI["root_doc"]."/plugins/formcreator/front/rule.php?pool_id=".$id;
+        if ($nb > 0) {
+            echo '<a href="'.$url.'">Liste des règles - '.$nb.'</a>';
+        }
+        echo "</td></tr>";
 
         $this->showFormButtons($options);
 
