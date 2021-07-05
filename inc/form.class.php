@@ -759,7 +759,9 @@ PluginFormcreatorConditionnableInterface
       $this->addDefaultFormTab($ong);
       $this->addStandardTab(PluginFormcreatorQuestion::class, $ong, $options);
       $this->addStandardTab(PluginFormcreatorForm_Profile::class, $ong, $options);
+      $this->addStandardTab(PluginFormcreatorRulePool::class, $ong, $options);
       $this->addStandardTab(__CLASS__, $ong, $options);
+      unset($ong['PluginFormcreatorForm$1']);
       $this->addStandardTab(PluginFormcreatorFormAnswer::class, $ong, $options);
       $this->addStandardTab(Log::class, $ong, $options);
       return $ong;

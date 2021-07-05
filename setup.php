@@ -31,7 +31,7 @@
 
 global $CFG_GLPI;
 // Version of the plugin
-define('PLUGIN_FORMCREATOR_VERSION', '2.11.2');
+define('PLUGIN_FORMCREATOR_VERSION', '2.11.3');
 // Schema version of this version
 define('PLUGIN_FORMCREATOR_SCHEMA_VERSION', '2.11');
 // is or is not an official release of the plugin
@@ -233,7 +233,8 @@ function plugin_init_formcreator() {
             $links  = [];
             if (Session::haveRight('entity', UPDATE)) {
                $PLUGIN_HOOKS['config_page']['formcreator']         = 'front/form.php';
-               $PLUGIN_HOOKS['menu_toadd']['formcreator']['admin'] = 'PluginFormcreatorForm';
+               $PLUGIN_HOOKS['menu_toadd']['formcreator']['admin'][] = 'PluginFormcreatorForm';
+               $PLUGIN_HOOKS['menu_toadd']['formcreator']['admin'][] = 'PluginFormcreatorRulePool';
                $links['config'] = FORMCREATOR_ROOTDOC . '/front/form.php';
                $links['add']    = FORMCREATOR_ROOTDOC . '/front/form.form.php';
             }

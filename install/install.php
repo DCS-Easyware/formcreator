@@ -66,6 +66,7 @@ class PluginFormcreatorInstall {
       '2.9'    => '2.10',
       '2.10'   => '2.10.2',
       '2.10.2' => '2.11',
+      '2.11' => '2.11.3',
    ];
 
    /**
@@ -463,6 +464,8 @@ class PluginFormcreatorInstall {
          'PluginFormcreatorQuestionDependency',
          'PluginFormcreatorQuestionRange',
          'PluginFormcreatorQuestionRegex',
+         'PluginFormcreatorRule',
+         'PluginFormcreatorRulePool'
       ];
 
       foreach ($itemtypes as $itemtype) {
